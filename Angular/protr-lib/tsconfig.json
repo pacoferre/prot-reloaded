@@ -22,6 +22,12 @@
       ],
       "protr/*": [
         "dist/protr/*"
+      ],
+      "protr-mat": [
+        "dist/protr-mat"
+      ],
+      "protr-mat/*": [
+        "dist/protr-mat/*"
       ]
     }
   }

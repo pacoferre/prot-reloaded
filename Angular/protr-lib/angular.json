@@ -161,6 +161,46 @@
           }
         }
       }
+    },
+    "protr-mat": {
+      "root": "projects/protr-mat",
+      "sourceRoot": "projects/protr-mat/src",
+      "projectType": "library",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/protr-mat/tsconfig.lib.json",
+            "project": "projects/protr-mat/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "project": "projects/protr-mat/ng-package.prod.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/protr-mat/src/test.ts",
+            "tsConfig": "projects/protr-mat/tsconfig.spec.json",
+            "karmaConfig": "projects/protr-mat/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/protr-mat/tsconfig.lib.json",
+              "projects/protr-mat/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "protr-lib"
