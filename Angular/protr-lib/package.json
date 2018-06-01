@@ -7,7 +7,9 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "build:protr": "ng build protr && xcopy dist\\protr\\*.* ..\\demo-app\\dist\\protr /y /s",
+    "build:protr-mat": "ng build protr-mat && xcopy dist\\protr-mat\\*.* ..\\demo-app\\dist\\protr-mat /y /s"
   },
   "private": true,
   "dependencies": {
