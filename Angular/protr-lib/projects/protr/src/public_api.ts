@@ -2,7 +2,8 @@
  * Public API Surface of protr
  */
 
-export * from './lib/protr.service';
-export * from './lib/protr.component';
-export * from './lib/protr.module';
-export * from './lib/guards/auth.guard';
+export * from './lib/dtos/businessObject';
+export * from './lib/dtos/user';
+export * from './lib/guards/authentication.guard';
+export * from './lib/services/authentication.service';
+export * from './lib/services/configuration.service';

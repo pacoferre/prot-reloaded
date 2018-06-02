@@ -9,7 +9,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "build:protr": "ng build protr && xcopy dist\\protr\\*.* ..\\demo-app\\dist\\protr /y /s",
-    "build:protr-mat": "ng build protr-mat && xcopy dist\\protr-mat\\*.* ..\\demo-app\\dist\\protr-mat /y /s"
+    "build:protr-mat": "ng build protr-mat && xcopy dist\\protr-mat\\*.* ..\\demo-app\\dist\\protr-mat /y /s",
+    "build:all": "del ..\\demo-app\\dist\\protr\\*.* /s /q && del ..\\demo-app\\dist\\protr-mat\\*.* /s /q && yarn build:protr && yarn build:protr-mat"
   },
   "private": true,
   "dependencies": {

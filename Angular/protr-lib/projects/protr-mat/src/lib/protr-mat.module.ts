@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { ProtrMatComponent } from './protr-mat.component';
-import { ProtrModule } from 'protr';
 import {
   MatAutocompleteModule,
   MatBadgeModule,
@@ -42,7 +41,6 @@ import {
 
 @NgModule({
   imports: [
-    ProtrModule,
     MatAutocompleteModule,
     MatBadgeModule,
     MatBottomSheetModule,
@@ -80,7 +78,9 @@ import {
     MatTooltipModule,
     MatTreeModule
   ],
-  declarations: [ProtrMatComponent],
+  declarations: [
+    ProtrMatComponent
+  ],
   exports: [
     ProtrMatComponent,
     MatAutocompleteModule,
