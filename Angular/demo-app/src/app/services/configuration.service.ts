@@ -7,8 +7,9 @@ export class ConfigurationService extends ProtrConfigurationService {
   constructor() {
     super();
 
-    this.apiUrl = '/api';
-    this.loginUrl = '/api/Auth/Login';
-    this.logoutUrl = '/api/Auth/Logout';
+    this.production = environment.production;
+    this.apiUrl = environment.apiUrl;
+    this.loginUrl = environment.loginUrl;
+    this.logoutUrl = environment.logoutUrl;
    }
 }
