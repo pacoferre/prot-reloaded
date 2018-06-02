@@ -4,7 +4,12 @@ import { Injectable } from '@angular/core';
 export class ProtrConfigurationService {
   constructor() { }
 
-  apiUrl = '/api';
-  loginUrl = '/api/Auth/Login';
-  logoutUrl = '/api/Auth/Logout';
+  production = false;
+  apiUrl = 'http:/server/api';
+  loginUrl = '/Auth/Login';
+  logoutUrl = '/Auth/Logout';
+
+  get apiLogin() { return this.apiUrl + this.loginUrl; }
+
+  get apiLogout() { return this.apiUrl + this.loginUrl; }
 }

@@ -12,7 +12,7 @@ export class ProtrAuthService {
 
   login(username: string, password: string): void {
     this.http
-      .post('/login', { username: username, password: password })
+      .post(this.configurationService.apiLogin, { username: username, password: password })
       .subscribe(resp => {
         this.currentUser.next(Object.assign(this.createBlankUser(), resp.json));
       }, error => {
@@ -20,8 +20,14 @@ export class ProtrAuthService {
       });
   }
 
-  logoff() {
-    this.currentUser.next(null);
+  logout() {
+    this.http
+      .get(this.configurationService.apiLogout)
+      .subscribe(resp => {
+        this.currentUser.next(null);
+      }, error => {
+        this.currentUser.next(null);
+      });
   }
 
   get isAuthenticated(): boolean {
