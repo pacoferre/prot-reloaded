@@ -1,4 +1,5 @@
-﻿@{
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
     Layout = null;
 }
 <!doctype html>
@@ -7,19 +8,26 @@
     <meta charset="utf-8">
     <title>DemoApp</title>
     <base href="/">
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
 </head>
 <body>
     <app-root></app-root>
-    <script type="text/javascript" src="http://localhost:4200/runtime.js"></script>
-    <script type="text/javascript" src="http://localhost:4200/polyfills.js"></script>
-    <script type="text/javascript" src="http://localhost:4200/styles.js"></script>
-    <script type="text/javascript" src="http://localhost:4200/vendor.js"></script>
-    <script type="text/javascript" src="http://localhost:4200/main.js"></script>
+    <environment names="Development">
+        <script type="text/javascript" src="http://localhost:4200/runtime.js"></script>
+        <script type="text/javascript" src="http://localhost:4200/polyfills.js"></script>
+        <script type="text/javascript" src="http://localhost:4200/styles.js"></script>
+        <script type="text/javascript" src="http://localhost:4200/vendor.js"></script>
+        <script type="text/javascript" src="http://localhost:4200/main.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script type="text/javascript" src="runtime.js"></script>
+        <script type="text/javascript" src="polyfills.js"></script>
+        <script type="text/javascript" src="styles.js"></script>
+        <script type="text/javascript" src="vendor.js"></script>
+        <script type="text/javascript" src="main.js"></script>
+    </environment>
 </body>
 </html>

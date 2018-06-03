@@ -1,4 +1,7 @@
 export class ProtrUser {
   id: string;
-  fullName: string;
+  name: string;
+  surname: string;
+  su: boolean;
+  email: string;
 }

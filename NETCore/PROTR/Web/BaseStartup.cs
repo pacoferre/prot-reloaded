@@ -63,9 +63,12 @@ namespace PROTR.Web
                 await next();
                 if (context.Response.StatusCode == 404)
                 {
-                    context.Request.Path = "/";
-                    context.Response.StatusCode = 200;
-                    await next();
+                    if (!context.Request.Path.Value.StartsWith("/api/"))
+                    {
+                        context.Request.Path = "/";
+                        context.Response.StatusCode = 200;
+                        await next();
+                    }
                 }
             });
 

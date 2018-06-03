@@ -15,8 +15,9 @@
       <div class="demo-toolbar">
         <h1>PROTR Library Demo</h1>
         <div>
-          <button mat-icon-button title="About">
-            <mat-icon>github</mat-icon>
+          {{ wellcome }}
+          <button mat-icon-button title="Exit" (click)="logout()">
+            <mat-icon>exit_to_app</mat-icon>
           </button>
         </div>
       </div>

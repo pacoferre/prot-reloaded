@@ -12,7 +12,7 @@ export class ProtrConfigurationService {
 
   get apiLogin() { return this.apiUrl + this.loginUrl; }
 
-  get apiLogout() { return this.apiUrl + this.loginUrl; }
+  get apiLogout() { return this.apiUrl + this.logoutUrl; }
 
   get apiCurrentUser() { return this.apiUrl + this.currentUserUrl; }
 }

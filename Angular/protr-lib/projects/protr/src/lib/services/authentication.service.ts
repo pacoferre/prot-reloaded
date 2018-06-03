@@ -6,21 +6,15 @@ import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class ProtrAuthenticationService {
-  currentUserSubject = new BehaviorSubject<ProtrUser>(null);
-  _currentUserObservable: Observable<ProtrUser>;
+  protected _currentUserSubject: BehaviorSubject<ProtrUser>;
 
   constructor(protected httpClient: HttpClient, protected configurationService: ProtrConfigurationService) {
-    this._currentUserObservable = this.currentUserSubject.asObservable();
-  }
-
-  get currentUserObservable() {
-    return this._currentUserObservable;
   }
 
   currentUser(): Promise<ProtrUser> {
     return new Promise<ProtrUser>(resolve => {
       if (this.isAuthenticated) {
-        return resolve(this.currentUserSubject.value);
+        return resolve(this._currentUserSubject.value);
       }
 
       const currentUserObservable = this.httpClient
@@ -29,14 +23,14 @@ export class ProtrAuthenticationService {
         .subscribe(resp => {
           if (resp != null) {
             const user = Object.assign(this.createBlankUser(), resp);
-            this.currentUserSubject.next(user);
+            this._currentUserSubject.next(user);
             resolve(user);
           } else {
-            this.currentUserSubject.next(null);
+            this._currentUserSubject.next(null);
             resolve(null);
           }
         }, error => {
-          this.currentUserSubject.next(null);
+          this._currentUserSubject.next(null);
           resolve(null);
         });
     });
@@ -48,14 +42,14 @@ export class ProtrAuthenticationService {
         .post<ProtrUser>(this.configurationService.apiLogin, { email: email, password: password })
         .subscribe(resp => {
           if (resp != null) {
-            this.currentUserSubject.next(Object.assign(this.createBlankUser(), resp));
+            this._currentUserSubject.next(Object.assign(this.createBlankUser(), resp));
             resolve(true);
           } else {
-            this.currentUserSubject.next(null);
+            this._currentUserSubject.next(null);
             resolve(false);
           }
         }, error => {
-          this.currentUserSubject.next(null);
+          this._currentUserSubject.next(null);
           resolve(false);
         });
     });
@@ -66,17 +60,17 @@ export class ProtrAuthenticationService {
       this.httpClient
         .get(this.configurationService.apiLogout)
         .subscribe(resp => {
-          this.currentUserSubject.next(null);
+          this._currentUserSubject.next(null);
           resolve(true);
         }, error => {
-          this.currentUserSubject.next(null);
+          this._currentUserSubject.next(null);
           resolve(true);
         });
     });
   }
 
   get isAuthenticated(): boolean {
-    return this.currentUserSubject.value != null;
+    return this._currentUserSubject.value != null;
   }
 
   createBlankUser(): ProtrUser {
