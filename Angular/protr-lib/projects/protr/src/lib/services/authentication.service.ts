@@ -17,9 +17,8 @@ export class ProtrAuthenticationService {
         return resolve(this._currentUserSubject.value);
       }
 
-      const currentUserObservable = this.httpClient
-        .get<ProtrUser>(this.configurationService.apiCurrentUser);
-      currentUserObservable
+      this.httpClient
+        .get<ProtrUser>(this.configurationService.apiCurrentUser)
         .subscribe(resp => {
           if (resp != null) {
             const user = Object.assign(this.createBlankUser(), resp);

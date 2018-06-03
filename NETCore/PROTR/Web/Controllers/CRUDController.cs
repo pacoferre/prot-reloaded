@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
+using PROTR.Web.Dtos;
+using System.Linq;
 
 namespace PROTR.Web.Controllers
 {
@@ -27,6 +29,16 @@ namespace PROTR.Web.Controllers
             {
                 context.Result = new JsonResult(ModelToClient.ErrorResponse("User not authenticated"));
             }
+        }
+
+        [HttpGet]
+        public Dictionary<string, PropertyDefinitionDto> Properties(string name)
+        {
+            return BusinessBaseProvider
+                .Instance
+                .GetDecorator(name)
+                .ListProperties
+                .ToDictionary(prop => prop.FieldName, prop => new PropertyDefinitionDto(prop));
         }
 
         [HttpPost]

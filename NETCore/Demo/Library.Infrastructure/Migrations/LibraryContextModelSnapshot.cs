@@ -16,7 +16,6 @@ namespace Demo.Library.Infrastructure.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.1.0-rtm-30799")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("Relational:Sequence:.appuser_hilo", "'appuser_hilo', '', '1', '10', '', '', 'Int64', 'False'")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("PROTR.Core.Security.EF.AppUser", b =>
@@ -24,8 +23,7 @@ namespace Demo.Library.Infrastructure.Migrations
                     b.Property<int>("IdAppUser")
                         .ValueGeneratedOnAdd()
                         .HasColumnName("idAppUser")
-                        .HasAnnotation("SqlServer:HiLoSequenceName", "appuser_hilo")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.SequenceHiLo);
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<bool>("Deactivated")
                         .ValueGeneratedOnAdd()

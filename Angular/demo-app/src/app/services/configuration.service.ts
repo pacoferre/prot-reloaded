@@ -1,22 +1,13 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { ProtrConfigurationService } from 'protr';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class ConfigurationService extends ProtrConfigurationService {
-  constructor() {
-    super();
+  constructor(httpClient: HttpClient) {
+    super(httpClient);
 
-    this.production = environment.production;
-    this.apiUrl = environment.apiUrl;
-    if ((<any>environment).loginUrl) {
-      this.loginUrl = (<any>environment).loginUrl;
-    }
-    if ((<any>environment).logoutUrl) {
-      this.logoutUrl = (<any>environment).logoutUrl;
-    }
-    if ((<any>environment).currentUserUrl) {
-      this.currentUserUrl = (<any>environment).currentUserUrl;
-    }
+    this.loadFromEnvironment(environment);
   }
 }

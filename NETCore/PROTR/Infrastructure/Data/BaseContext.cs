@@ -28,9 +28,7 @@ namespace PROTR.Infrastructure.Data
             builder.HasKey(user => user.IdAppUser);
 
             builder.Property(user => user.IdAppUser)
-                .HasColumnName("idAppUser")
-                .ForSqlServerUseSequenceHiLo("appuser_hilo")
-                .IsRequired();
+                .HasColumnName("idAppUser");
 
             builder.Property(user => user.Name)
                 .HasColumnName("name")

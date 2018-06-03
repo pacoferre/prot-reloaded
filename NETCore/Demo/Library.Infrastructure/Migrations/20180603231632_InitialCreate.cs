@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Demo.Library.Infrastructure.Migrations
 {
@@ -6,15 +7,12 @@ namespace Demo.Library.Infrastructure.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateSequence(
-                name: "appuser_hilo",
-                incrementBy: 10);
-
             migrationBuilder.CreateTable(
                 name: "AppUser",
                 columns: table => new
                 {
-                    idAppUser = table.Column<int>(nullable: false),
+                    idAppUser = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(maxLength: 30, nullable: false),
                     surname = table.Column<string>(maxLength: 50, nullable: false),
                     su = table.Column<bool>(nullable: false, defaultValue: false),
@@ -32,9 +30,6 @@ namespace Demo.Library.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AppUser");
-
-            migrationBuilder.DropSequence(
-                name: "appuser_hilo");
         }
     }
 }

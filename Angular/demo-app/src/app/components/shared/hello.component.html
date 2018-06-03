@@ -1,0 +1,6 @@
+<h2>Object name: {{decorator?.name}}</h2>
+<ul>
+  <li *ngFor="let item of decorator?.fieldPropertiesArray">
+    {{item.label}}: {{item.fieldName}} MaxLength: {{item.maxLength}} Required: {{item.required}} Read only: {{item.isReadOnly}}
+  </li>
+</ul>
