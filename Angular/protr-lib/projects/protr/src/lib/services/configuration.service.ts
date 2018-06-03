@@ -6,10 +6,13 @@ export class ProtrConfigurationService {
 
   production = false;
   apiUrl = 'http:/server/api';
-  loginUrl = '/Auth/Login';
-  logoutUrl = '/Auth/Logout';
+  loginUrl = '/Authentication/Login';
+  logoutUrl = '/Authentication/Logout';
+  currentUserUrl = '/Authentication/CurrentUser';
 
   get apiLogin() { return this.apiUrl + this.loginUrl; }
 
   get apiLogout() { return this.apiUrl + this.loginUrl; }
+
+  get apiCurrentUser() { return this.apiUrl + this.currentUserUrl; }
 }

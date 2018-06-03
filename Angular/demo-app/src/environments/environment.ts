@@ -4,9 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:57387538/api',
-  loginUrl: '/Auth/Login',
-  logoutUrl: '/Auth/Logout'
+  apiUrl: 'http://localhost:52036/api',
 };
 
 /*

@@ -17,14 +17,6 @@ namespace PROTR.Core.Security
             Properties["email"].IsOnlyOnNew = true;
             Properties["email"].Type = PropertyInputType.email;
             Properties["password"].Type = PropertyInputType.password;
-
-            if (Properties.ContainsKey("passwordResetDays"))
-            {
-                Properties["passwordResetDays"].Label = "Password maximum age (days)";
-                Properties["passwordResetDays"].IsReadOnly = false;
-                Properties["passwordResetDays"].IsComputed = false;
-                Properties["passwordResetDays"].DefaultValue = 30;
-            }
         }
     }
 
@@ -37,6 +29,20 @@ namespace PROTR.Core.Security
 
         public AppUser(bool noDB) : base(noDB)
         {
+        }
+
+        public EF.AppUser MapToEF()
+        {
+            return new EF.AppUser()
+            {
+                IdAppUser = (int)this["idAppUser"],
+                Name = this["name"].NoNullString(),
+                Surname = this["name"].NoNullString(),
+                Su = this["su"].NoNullBool(),
+                Email = this["email"].NoNullString(),
+                Password = "",
+                Deactivated = this["deactivated"].NoNullBool()
+            };
         }
 
         public override string Description

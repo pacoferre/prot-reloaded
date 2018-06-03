@@ -10,7 +10,6 @@ using System.Collections.Generic;
 
 namespace PROTR.Web.Controllers
 {
-    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public class CRUDController : Controller
     {
         protected IMemoryCache memoryCache;

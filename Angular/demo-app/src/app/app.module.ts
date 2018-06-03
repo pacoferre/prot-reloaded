@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Routes, RouterModule } from '@angular/router';
 import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 
 import { ProtrMatModule } from 'protr-mat';
 
@@ -11,14 +12,14 @@ import { LoginComponent } from './login/login.component';
 import { StartComponent } from './start/start.component';
 
 import { AuthGuard } from './guards/authentication.guard';
+
 import { AuthenticationService } from './services/authentication.service';
 import { ConfigurationService } from './services/configuration.service';
-
 
 const routes: Routes = [
   { path: 'start', component: StartComponent, canActivate: [ AuthGuard ] },
   { path: 'login', component: LoginComponent },
-  { path: '', component : LoginComponent }
+  { path: '', component : StartComponent, canActivate: [ AuthGuard ] }
 ];
 
 @NgModule({
@@ -32,7 +33,8 @@ const routes: Routes = [
     BrowserAnimationsModule,
     ProtrMatModule,
     RouterModule.forRoot(routes),
-    HttpModule
+    HttpModule,
+    HttpClientModule
   ],
   providers: [
     AuthGuard,

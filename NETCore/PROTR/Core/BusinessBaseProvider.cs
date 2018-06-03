@@ -32,7 +32,7 @@ namespace PROTR.Core
         public static ListProvider ListProvider { get; private set; }
 
         public static void Configure(IHttpContextAccessor httpContextAccessor, ConnectionMultiplexer theCache,
-            BusinessBaseProvider instance, IConfigurationRoot configuration)
+            BusinessBaseProvider instance, IConfiguration configuration)
         {
             HttpContextAccessor = httpContextAccessor;
             TheCache = theCache;

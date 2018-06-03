@@ -9,7 +9,14 @@ export class ConfigurationService extends ProtrConfigurationService {
 
     this.production = environment.production;
     this.apiUrl = environment.apiUrl;
-    this.loginUrl = environment.loginUrl;
-    this.logoutUrl = environment.logoutUrl;
-   }
+    if ((<any>environment).loginUrl) {
+      this.loginUrl = (<any>environment).loginUrl;
+    }
+    if ((<any>environment).logoutUrl) {
+      this.logoutUrl = (<any>environment).logoutUrl;
+    }
+    if ((<any>environment).currentUserUrl) {
+      this.currentUserUrl = (<any>environment).currentUserUrl;
+    }
+  }
 }

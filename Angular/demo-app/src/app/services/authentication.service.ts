@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@angular/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { User } from '../dtos/user';
 import { ConfigurationService } from './configuration.service';
-import { ProtrUser, ProtrAuthService } from 'protr';
+import { ProtrUser, ProtrAuthenticationService } from 'protr';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable()
-export class AuthenticationService extends ProtrAuthService {
-  constructor(http: Http, configurationService: ConfigurationService) {
-    super(http, configurationService);
+export class AuthenticationService extends ProtrAuthenticationService {
+  constructor(httpClient: HttpClient, configurationService: ConfigurationService) {
+    super(httpClient, configurationService);
   }
 
   createBlankUser(): ProtrUser {

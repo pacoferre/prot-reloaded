@@ -13,7 +13,7 @@ namespace PROTR.Core
 {
     public class DB : IDisposable
     {
-        public static IConfigurationRoot Configuration { get; set; }
+        public static IConfiguration Configuration { get; set; }
 
         public DBDialect Dialect { get; }
         public int DBNumber { get; }

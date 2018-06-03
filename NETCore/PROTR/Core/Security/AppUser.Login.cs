@@ -104,24 +104,6 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
                     usu = null;
                 }
             }
-            else
-            {
-                //// Si no existen usuarios, creamos el admin.
-                //if (Data.Instancia().DameExpresionInt("Select COUNT(*) From UserApp WHERE SU = 1") == 0)
-                //{
-                //    usu = (UserApp)BusinessProviderBase.Provider.NewObject("UserApp");
-
-                //    usu.NuevoEnBlanco();
-                //    usu["name"] = "UserApp";
-                //    usu["surname"] = "Administrador";
-                //    usu["su"] = true;
-                //    usu["email"] = "admin@local";
-                //    usu["password"] = "admin";
-                //    usu.creacionAutomatica = true;
-                //    usu.StoreToDB(false);
-                //    usu.creacionAutomatica = false;
-                //}
-            }
 
             if (usu != null)
             {
@@ -185,7 +167,7 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
         public static string PasswordDerivedString(string idAppUser, string password)
         {
             return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: idAppUser + "_fsk53g5djfskj_" + password,
+                password: idAppUser + "_fg784gyb4yskj_" + password,
                 salt: SALT,
                 prf: KeyDerivationPrf.HMACSHA1,
                 iterationCount: 200,
