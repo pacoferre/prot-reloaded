@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ProtrMatComponent } from './protr-mat.component';
+import { ProtrMatTextComponent } from './text.component';
 
 describe('ProtrMatComponent', () => {
-  let component: ProtrMatComponent;
-  let fixture: ComponentFixture<ProtrMatComponent>;
+  let component: ProtrMatTextComponent;
+  let fixture: ComponentFixture<ProtrMatTextComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ProtrMatComponent ]
+      declarations: [ ProtrMatTextComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ProtrMatComponent);
+    fixture = TestBed.createComponent(ProtrMatTextComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

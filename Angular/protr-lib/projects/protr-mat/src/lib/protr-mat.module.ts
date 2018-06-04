@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { ProtrMatComponent } from './protr-mat.component';
+import { ProtrMatTextComponent } from './text.component';
 import {
   MatAutocompleteModule,
   MatBadgeModule,
@@ -38,9 +38,11 @@ import {
   MatTooltipModule,
   MatTreeModule
 } from '@angular/material';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   imports: [
+    FormsModule,
     MatAutocompleteModule,
     MatBadgeModule,
     MatBottomSheetModule,
@@ -79,10 +81,10 @@ import {
     MatTreeModule
   ],
   declarations: [
-    ProtrMatComponent
+    ProtrMatTextComponent
   ],
   exports: [
-    ProtrMatComponent,
+    ProtrMatTextComponent,
     MatAutocompleteModule,
     MatBadgeModule,
     MatBottomSheetModule,

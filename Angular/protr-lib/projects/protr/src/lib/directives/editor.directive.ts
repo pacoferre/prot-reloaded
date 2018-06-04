@@ -1,6 +1,5 @@
-import { Directive, forwardRef, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { ProtrConfigurationService } from '../services/configuration.service';
-import { Decorator } from '../dtos/decorator';
+import { Directive, forwardRef, Input, OnInit, Inject } from '@angular/core';
+import { ProtrEditorService } from '../services/editor.service';
 
 @Directive({
   selector: '[protrEditor]',
@@ -9,23 +8,13 @@ import { Decorator } from '../dtos/decorator';
   ]
 })
 export class ProtrEditorDirective implements OnInit {
-  @Input() name;
+  @Input() name: string;
 
-  decorator: Decorator;
-
-  @Output()
-  ready: EventEmitter<Decorator> = new EventEmitter();
-
-  constructor(private configurationService: ProtrConfigurationService) {
-
+  constructor(@Inject('EditorService') private protrEditorService: ProtrEditorService) {
   }
 
   ngOnInit(): void {
-    this.configurationService
-      .getProperties(this.name)
-      .then(resp => {
-        this.decorator = new Decorator(this.name, resp);
-        this.ready.emit(this.decorator);
-      });
+    this.protrEditorService
+      .init(this.name);
   }
 }

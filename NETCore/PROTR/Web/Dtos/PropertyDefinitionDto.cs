@@ -53,8 +53,8 @@ namespace PROTR.Web.Dtos
             Step = property.Step;
             ListObjectName = property.ListObjectName;
             ListName = property.ListName;
-            IsObjectView = property.SetModified;
-            ListAjax = property.SetModified;
+            IsObjectView = property.IsObjectView;
+            ListAjax = property.ListAjax;
             Rows = property.Rows;
             DefaultSearch = property.DefaultSearch;
             SearchMultipleSelect = property.SearchMultipleSelect;

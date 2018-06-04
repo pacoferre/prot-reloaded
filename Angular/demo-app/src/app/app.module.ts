@@ -5,18 +5,20 @@ import { Routes, RouterModule } from '@angular/router';
 import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 
-import { ProtrModule, ProtrConfigurationService, ProtrAuthenticationService } from 'protr';
+import { ProtrModule, ProtrConfigurationService, ProtrAuthenticationService, ProtrEditorService } from 'protr';
 import { ProtrMatModule } from 'protr-mat';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { StartComponent } from './start/start.component';
+import { HelloComponent } from './components/shared/hello.component';
 
 import { AuthGuard } from './guards/authentication.guard';
 
 import { AuthenticationService } from './services/authentication.service';
 import { ConfigurationService } from './services/configuration.service';
-import { HelloComponent } from './components/shared/hello.component';
+import { EditorService } from './services/editor.service';
+
 
 const routes: Routes = [
   { path: 'start', component: StartComponent, canActivate: [ AuthGuard ] },
@@ -43,8 +45,8 @@ const routes: Routes = [
   providers: [
     AuthGuard,
     ConfigurationService,
-    { provide: ProtrConfigurationService, useClass: ConfigurationService },
     AuthenticationService,
+    { provide: 'EditorService', useClass: EditorService },
   ],
   bootstrap: [ AppComponent ]
 })

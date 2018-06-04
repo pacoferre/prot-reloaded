@@ -32,6 +32,7 @@ export class Decorator {
   public name: string;
   public fieldProperties: IDictionary<IFieldProperty>;
   public fieldPropertiesArray: IFieldProperty[];
+  public identityFields: IFieldProperty[];
 
   constructor(name: string, fieldProperties: IDictionary<IFieldProperty>) {
     this.name = name;
@@ -41,6 +42,7 @@ export class Decorator {
       .map(function(key) {
         return fieldProperties[key];
     });
-
+    this.identityFields = this.fieldPropertiesArray
+      .filter(field => field.isIdentity);
   }
 }

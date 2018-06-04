@@ -11,6 +11,10 @@ export class ProtrAuthenticationService {
   constructor(protected httpClient: HttpClient, protected configurationService: ProtrConfigurationService) {
   }
 
+  currentUserObserver() {
+    return this._currentUserSubject.asObservable();
+  }
+
   currentUser(): Promise<ProtrUser> {
     return new Promise<ProtrUser>(resolve => {
       if (this.isAuthenticated) {
