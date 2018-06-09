@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { ProtrUser } from '../dtos/user';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ProtrConfigurationService } from './configuration.service';
 import { HttpClient } from '@angular/common/http';
 import { ProtrAuthenticationService } from './authentication.service';
 import { BusinessObject } from '../dtos/businessObject';
 import { Decorator } from '../dtos/decorator';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 @Injectable()
 export class ProtrEditorService {
   protected _currentDecoratorSubject: BehaviorSubject<Decorator>;
   protected _currentBusinessObjectSubject: BehaviorSubject<BusinessObject>;
   protected _modifiedSubject: BehaviorSubject<boolean>;
-  protected currentBusinessObject: BusinessObject;
+  public currentBusinessObject: BusinessObject;
 
   constructor(protected httpClient: HttpClient,
       protected configurationService: ProtrConfigurationService,
@@ -32,9 +32,9 @@ export class ProtrEditorService {
       });
   }
 
-  private setCurrentBusinessObject(businessObject: BusinessObject) {
-    this._currentBusinessObjectSubject.next(null);
-    this.currentBusinessObject = null;
+  public setCurrentBusinessObject(businessObject: BusinessObject) {
+    this._currentBusinessObjectSubject.next(businessObject);
+    this.currentBusinessObject = businessObject;
     this._modifiedSubject.next(false);
   }
 
@@ -53,5 +53,18 @@ export class ProtrEditorService {
     if (!this._modifiedSubject.value) {
       this._modifiedSubject.next(true);
     }
+  }
+
+  toFormGroup() {
+    const group: any = {};
+
+    this._currentDecoratorSubject.getValue()
+      .fieldPropertiesArray
+      .forEach(question => {
+        group[question.fieldName] = question.required ? new FormControl('', Validators.required)
+                                                : new FormControl('');
+      });
+
+    return new FormGroup(group);
   }
 }

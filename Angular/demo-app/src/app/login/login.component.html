@@ -1,14 +1,12 @@
 <mat-card>
   <mat-card-title>Login</mat-card-title>
   <mat-card-content>
-    <form fxLayout="column" fxLayoutAlign="center none">
-      <mat-form-field>
-        <input matInput placeholder="email" type="text" #email>
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput placeholder="password" type="text" #password>
-      </mat-form-field>
-    </form>
+    <mat-form-field>
+      <input matInput placeholder="email" type="text" #email>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput placeholder="password" type="text" #password>
+    </mat-form-field>
     <button mat-raised-button (click)="login(email.value, password.value)">login</button>
   </mat-card-content>
 </mat-card>

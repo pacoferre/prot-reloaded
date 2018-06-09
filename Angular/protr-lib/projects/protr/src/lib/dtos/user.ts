@@ -1,4 +1,6 @@
-export class ProtrUser {
+import { BusinessObject } from './businessObject';
+
+export class ProtrUser extends BusinessObject {
   id: string;
   name: string;
   surname: string;

@@ -1,4 +1,4 @@
-import { OnInit, OnDestroy } from '@angular/core';
+import { OnInit, OnDestroy, Input } from '@angular/core';
 import { ProtrEditorService } from '../services/editor.service';
 import { Decorator } from '../dtos/decorator';
 import { BusinessObject } from '../dtos/businessObject';

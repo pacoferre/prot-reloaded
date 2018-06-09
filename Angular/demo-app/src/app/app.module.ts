@@ -4,14 +4,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Routes, RouterModule } from '@angular/router';
 import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { ProtrModule, ProtrConfigurationService, ProtrAuthenticationService, ProtrEditorService } from 'protr';
+import { ProtrModule } from 'protr';
 import { ProtrMatModule } from 'protr-mat';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { StartComponent } from './start/start.component';
-import { HelloComponent } from './components/shared/hello.component';
 
 import { AuthGuard } from './guards/authentication.guard';
 
@@ -30,12 +30,12 @@ const routes: Routes = [
   declarations: [
     AppComponent,
     LoginComponent,
-    StartComponent,
-    HelloComponent
+    StartComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    ReactiveFormsModule,
     ProtrModule,
     ProtrMatModule,
     RouterModule.forRoot(routes),

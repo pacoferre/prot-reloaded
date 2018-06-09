@@ -4,8 +4,8 @@
 
 export * from './lib/protr.module';
 export * from './lib/controls/base.control';
+export * from './lib/controls/base.editor';
 export * from './lib/controls/field.control';
-export * from './lib/directives/editor.directive';
 export * from './lib/dtos/businessObject';
 export * from './lib/dtos/decorator';
 export * from './lib/dtos/user';

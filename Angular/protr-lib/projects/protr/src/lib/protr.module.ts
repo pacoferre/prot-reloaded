@@ -1,10 +1,11 @@
 import { NgModule } from '@angular/core';
-import { ProtrEditorDirective } from './directives/editor.directive';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   imports: [
+    FormsModule, ReactiveFormsModule
   ],
-  declarations: [ProtrEditorDirective],
-  exports: [ProtrEditorDirective]
+  declarations: [],
+  exports: []
 })
 export class ProtrModule { }
