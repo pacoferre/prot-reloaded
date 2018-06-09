@@ -18,6 +18,7 @@ import { AuthGuard } from './guards/authentication.guard';
 import { AuthenticationService } from './services/authentication.service';
 import { ConfigurationService } from './services/configuration.service';
 import { EditorService } from './services/editor.service';
+import { CrudService } from './services/crud.service';
 
 
 const routes: Routes = [
@@ -47,6 +48,7 @@ const routes: Routes = [
     ConfigurationService,
     AuthenticationService,
     { provide: 'EditorService', useClass: EditorService },
+    { provide: 'CrudService', useClass: CrudService },
   ],
   bootstrap: [ AppComponent ]
 })

@@ -32,6 +32,8 @@ export class FieldControl extends BaseControl {
     if (props.required) {
       this.control.setValidators([Validators.required]);
     }
+
+    this.registerFieldNamesOnInit([ this.fieldName ]);
   }
 
   load(businessObject: BusinessObject): void {

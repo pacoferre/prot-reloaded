@@ -13,6 +13,7 @@ export class ProtrConfigurationService {
   logoutUrl = '/Authentication/Logout';
   currentUserUrl = '/Authentication/CurrentUser';
   propertiesUrl = '/CRUD/Properties';
+  crudPostUrl = '/CRUD/Post';
 
   get apiLogin() { return this.apiUrl + this.loginUrl; }
 
@@ -21,6 +22,8 @@ export class ProtrConfigurationService {
   get apiCurrentUser() { return this.apiUrl + this.currentUserUrl; }
 
   get apiProperties() { return this.apiUrl + this.propertiesUrl; }
+
+  get apiCrudPost() { return this.apiUrl + this.crudPostUrl; }
 
   loadFromEnvironment(environment: any) {
     this.production = environment.production;
@@ -36,6 +39,9 @@ export class ProtrConfigurationService {
     }
     if (environment.propertiesUrl) {
       this.propertiesUrl = environment.propertiesUrl;
+    }
+    if (environment.crudPostUrl) {
+      this.crudPostUrl = environment.crudPostUrl;
     }
   }
 
