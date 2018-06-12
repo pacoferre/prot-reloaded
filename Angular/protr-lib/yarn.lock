@@ -231,6 +231,10 @@
   version "0.0.39"
   resolved "http://192.168.2.110:4873/@types%2festree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
 
+"@types/google-protobuf@^3.2.7":
+  version "3.2.7"
+  resolved "http://192.168.2.110:4873/@types%2fgoogle-protobuf/-/google-protobuf-3.2.7.tgz#9576ed5dd62cdb1c9f952522028a03b7cb2b69b5"
+
 "@types/jasmine@*", "@types/jasmine@~2.8.6":
   version "2.8.8"
   resolved "http://192.168.2.110:4873/@types%2fjasmine/-/jasmine-2.8.8.tgz#bf53a7d193ea8b03867a38bfdb4fbb0e0bf066c9"
@@ -961,6 +965,10 @@ braces@^2.3.0, braces@^2.3.1:
 brorand@^1.0.1:
   version "1.1.0"
   resolved "http://192.168.2.110:4873/brorand/-/brorand-1.1.0.tgz#12c25efe40a45e3c323eb8675a0a0ce57b22371f"
+
+browser-headers@^0.4.0:
+  version "0.4.0"
+  resolved "http://192.168.2.110:4873/browser-headers/-/browser-headers-0.4.0.tgz#7b6b4d3cc0cecc9ddf503768147932105c421734"
 
 browserify-aes@^1.0.0, browserify-aes@^1.0.4:
   version "1.2.0"
@@ -2745,6 +2753,10 @@ globule@^1.0.0:
     lodash "~4.17.10"
     minimatch "~3.0.2"
 
+google-protobuf@^3.5.0:
+  version "3.5.0"
+  resolved "http://192.168.2.110:4873/google-protobuf/-/google-protobuf-3.5.0.tgz#b8cc63c74d83457bd8a9a904503c8efb26bca339"
+
 got@^6.7.1:
   version "6.7.1"
   resolved "http://192.168.2.110:4873/got/-/got-6.7.1.tgz#240cd05785a9a18e561dc1b44b41c763ef1e8db0"
@@ -2764,6 +2776,12 @@ got@^6.7.1:
 graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.6:
   version "4.1.11"
   resolved "http://192.168.2.110:4873/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
+
+grpc-web-client@^0.6.2:
+  version "0.6.2"
+  resolved "http://192.168.2.110:4873/grpc-web-client/-/grpc-web-client-0.6.2.tgz#3be2187edd6314192321cd9929fc1bfb8b715d91"
+  dependencies:
+    browser-headers "^0.4.0"
 
 handle-thing@^1.2.5:
   version "1.2.5"
@@ -6334,6 +6352,12 @@ ts-node@~5.0.1:
     mkdirp "^0.5.1"
     source-map-support "^0.5.3"
     yn "^2.0.0"
+
+ts-protoc-gen@^0.7.3:
+  version "0.7.3"
+  resolved "http://192.168.2.110:4873/ts-protoc-gen/-/ts-protoc-gen-0.7.3.tgz#bddbf1b9b053df1c6481c00ddd01feb4bc5a50f9"
+  dependencies:
+    google-protobuf "^3.5.0"
 
 tsickle@>=0.25.5, tsickle@^0.29.0:
   version "0.29.0"

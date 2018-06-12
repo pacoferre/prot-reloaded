@@ -4,6 +4,9 @@ import { ProtrUser } from '../dtos/user';
 import { ProtrConfigurationService } from './configuration.service';
 import { HttpClient } from '@angular/common/http';
 
+const authentication_pb = require('./lib/gRPC/authentication_pb.js');
+const authentication_pb_service = require('./lib/gRPC/authentication_pb_service.js');
+
 @Injectable()
 export class ProtrAuthenticationService {
   protected _currentUserSubject: BehaviorSubject<ProtrUser>;
@@ -41,6 +44,21 @@ export class ProtrAuthenticationService {
 
   login(email: string, password: string): Promise<boolean> {
     return new Promise<boolean>(resolve => {
+      const client = new authentication_pb_service.LoginClient('https://my.grpc/server');
+      const req = new authentication_pb.LoginRequest();
+      req.setEmail(email);
+      req.setPassword(password);
+      client.askLogin(req, (err, user) => {
+        debugger;
+      });
+
+
+
+
+
+
+/*
+
       this.httpClient
         .post<ProtrUser>(this.configurationService.apiLogin, { email: email, password: password })
         .subscribe(resp => {
@@ -55,6 +73,8 @@ export class ProtrAuthenticationService {
           this._currentUserSubject.next(null);
           resolve(false);
         });
+
+*/
     });
   }
 

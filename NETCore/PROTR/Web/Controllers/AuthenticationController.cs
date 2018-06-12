@@ -18,14 +18,14 @@ namespace PROTR.Web.Controllers
             this.memoryCache = memoryCache;
         }
 
-        public class LoginObject
+        public class LoginRequest
         {
             public string email;
             public string password;
         }
 
         [HttpPost]
-        public Core.Security.EF.AppUser Login([FromBody]LoginObject login)
+        public Core.Security.EF.AppUser Login([FromBody]LoginRequest login)
         {
             bool valid;
 

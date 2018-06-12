@@ -427,12 +427,12 @@ ajv@^5.0.0, ajv@^5.1.0:
     json-schema-traverse "^0.3.0"
 
 ajv@^6.1.0:
-  version "6.5.0"
-  resolved "http://192.168.2.110:4873/ajv/-/ajv-6.5.0.tgz#4c8affdf80887d8f132c9c52ab8a2dc4d0b7b24c"
+  version "6.5.1"
+  resolved "http://192.168.2.110:4873/ajv/-/ajv-6.5.1.tgz#88ebc1263c7133937d108b80c5572e64e1d9322d"
   dependencies:
     fast-deep-equal "^2.0.1"
     fast-json-stable-stringify "^2.0.0"
-    json-schema-traverse "^0.3.0"
+    json-schema-traverse "^0.4.1"
     uri-js "^4.2.1"
 
 ajv@~6.4.0:
@@ -911,6 +911,10 @@ brorand@^1.0.1:
   version "1.1.0"
   resolved "http://192.168.2.110:4873/brorand/-/brorand-1.1.0.tgz#12c25efe40a45e3c323eb8675a0a0ce57b22371f"
 
+browser-headers@^0.4.0:
+  version "0.4.0"
+  resolved "http://192.168.2.110:4873/browser-headers/-/browser-headers-0.4.0.tgz#7b6b4d3cc0cecc9ddf503768147932105c421734"
+
 browserify-aes@^1.0.0, browserify-aes@^1.0.4:
   version "1.2.0"
   resolved "http://192.168.2.110:4873/browserify-aes/-/browserify-aes-1.2.0.tgz#326734642f403dabc3003209853bb70ad428ef48"
@@ -1299,8 +1303,8 @@ commondir@^1.0.1:
   resolved "http://192.168.2.110:4873/commondir/-/commondir-1.0.1.tgz#ddd800da0c66127393cca5950ea968a3aaf1253b"
 
 compare-versions@^3.1.0:
-  version "3.2.1"
-  resolved "http://192.168.2.110:4873/compare-versions/-/compare-versions-3.2.1.tgz#a49eb7689d4caaf0b6db5220173fd279614000f7"
+  version "3.3.0"
+  resolved "http://192.168.2.110:4873/compare-versions/-/compare-versions-3.3.0.tgz#af93ea705a96943f622ab309578b9b90586f39c3"
 
 component-bind@1.0.0:
   version "1.0.0"
@@ -2595,9 +2599,19 @@ globule@^1.0.0:
     lodash "~4.17.10"
     minimatch "~3.0.2"
 
+google-protobuf@^3.5.0:
+  version "3.5.0"
+  resolved "http://192.168.2.110:4873/google-protobuf/-/google-protobuf-3.5.0.tgz#b8cc63c74d83457bd8a9a904503c8efb26bca339"
+
 graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.6:
   version "4.1.11"
   resolved "http://192.168.2.110:4873/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
+
+grpc-web-client@^0.6.2:
+  version "0.6.2"
+  resolved "http://192.168.2.110:4873/grpc-web-client/-/grpc-web-client-0.6.2.tgz#3be2187edd6314192321cd9929fc1bfb8b715d91"
+  dependencies:
+    browser-headers "^0.4.0"
 
 hammerjs@^2.0.8:
   version "2.0.8"
@@ -2725,8 +2739,8 @@ hash-base@^3.0.0:
     safe-buffer "^5.0.1"
 
 hash.js@^1.0.0, hash.js@^1.0.3:
-  version "1.1.3"
-  resolved "http://192.168.2.110:4873/hash.js/-/hash.js-1.1.3.tgz#340dedbe6290187151c1ea1d777a3448935df846"
+  version "1.1.4"
+  resolved "http://192.168.2.110:4873/hash.js/-/hash.js-1.1.4.tgz#8b50e1f35d51bd01e5ed9ece4dbe3549ccfa0a3c"
   dependencies:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.0"
@@ -2887,8 +2901,8 @@ iconv-lite@0.4.23, iconv-lite@^0.4.4:
     safer-buffer ">= 2.1.2 < 3"
 
 ieee754@^1.1.4:
-  version "1.1.11"
-  resolved "http://192.168.2.110:4873/ieee754/-/ieee754-1.1.11.tgz#c16384ffe00f5b7835824e67b6f2bd44a5229455"
+  version "1.1.12"
+  resolved "http://192.168.2.110:4873/ieee754/-/ieee754-1.1.12.tgz#50bf24e5b9c8bb98af4964c941cdb0918da7b60b"
 
 iferr@^0.1.5:
   version "0.1.5"
@@ -3396,6 +3410,10 @@ jsesc@~0.5.0:
 json-schema-traverse@^0.3.0:
   version "0.3.1"
   resolved "http://192.168.2.110:4873/json-schema-traverse/-/json-schema-traverse-0.3.1.tgz#349a6d44c53a51de89b40805c5d5e59b417d3340"
+
+json-schema-traverse@^0.4.1:
+  version "0.4.1"
+  resolved "http://192.168.2.110:4873/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz#69f6a87d9513ab8bb8fe63bdb0979c448e684660"
 
 json-schema@0.2.3:
   version "0.2.3"

@@ -1,0 +1,22 @@
+﻿syntax = "proto3";
+
+package PROTR.gRPC.Authentication;
+
+service Login {
+  rpc AskLogin (LoginRequest) returns (AppUser) {}
+}
+
+message AppUser {
+  double idAppUser = 1;
+  string name = 2;
+  string surname = 3;
+  bool su = 4;
+  string email = 5;
+  string password = 6;
+  bool deactivated = 7;
+};
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+};

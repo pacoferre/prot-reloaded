@@ -9,11 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PROTR.Web", "PROTR\Web\PROT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo.Library.API", "Demo\Library.API\Demo.Library.API.csproj", "{BD5A512F-426C-46B9-9588-E67FF6D2EE9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.Library.Infrastructure", "Demo\Library.Infrastructure\Demo.Library.Infrastructure.csproj", "{8F061994-D45E-446D-AEA2-5D72FAEBDA03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo.Library.Infrastructure", "Demo\Library.Infrastructure\Demo.Library.Infrastructure.csproj", "{8F061994-D45E-446D-AEA2-5D72FAEBDA03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.Library.Business", "Demo\Library.Business\Demo.Library.Business.csproj", "{0AEE0FD5-0D40-4E9A-BA79-824E79A5F2A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo.Library.Business", "Demo\Library.Business\Demo.Library.Business.csproj", "{0AEE0FD5-0D40-4E9A-BA79-824E79A5F2A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PROTR.Infrastructure", "PROTR\Infrastructure\PROTR.Infrastructure.csproj", "{0B64FF2D-95A5-479B-8A8D-31ABBD54FC33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PROTR.Infrastructure", "PROTR\Infrastructure\PROTR.Infrastructure.csproj", "{0B64FF2D-95A5-479B-8A8D-31ABBD54FC33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PROTR.gRPC", "PROTR\gRPC\PROTR.gRPC.csproj", "{596787C7-6577-4789-8007-85F751FD5C5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{0B64FF2D-95A5-479B-8A8D-31ABBD54FC33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B64FF2D-95A5-479B-8A8D-31ABBD54FC33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B64FF2D-95A5-479B-8A8D-31ABBD54FC33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{596787C7-6577-4789-8007-85F751FD5C5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{596787C7-6577-4789-8007-85F751FD5C5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{596787C7-6577-4789-8007-85F751FD5C5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{596787C7-6577-4789-8007-85F751FD5C5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
