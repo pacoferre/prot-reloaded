@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProtrMatTextComponent } from './text.component';
+import { ProtrMatDropdownComponent } from './drop-down.component';
 import {
   MatAutocompleteModule,
   MatBadgeModule,
@@ -84,7 +85,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MatTreeModule
   ],
   declarations: [
-    ProtrMatTextComponent
+    ProtrMatTextComponent,
+    ProtrMatDropdownComponent
   ],
   exports: [
     ProtrMatTextComponent,

@@ -477,6 +477,12 @@ amdefine@>=0.0.4:
   version "1.0.1"
   resolved "http://192.168.2.110:4873/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
 
+angular-async-cache@^2.0.1:
+  version "2.0.1"
+  resolved "http://192.168.2.110:4873/angular-async-cache/-/angular-async-cache-2.0.1.tgz#97043652b3299204a15c18b6d0a974df615597a0"
+  dependencies:
+    tslib "^1.9.0"
+
 ansi-align@^2.0.0:
   version "2.0.0"
   resolved "http://192.168.2.110:4873/ansi-align/-/ansi-align-2.0.0.tgz#c36aeccba563b89ceb556f3690f0b1d9e3547f7f"
@@ -4251,8 +4257,8 @@ next-tick@1:
   resolved "http://192.168.2.110:4873/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
 
 ng-packagr@^3.0.0-rc.2:
-  version "3.0.1"
-  resolved "http://192.168.2.110:4873/ng-packagr/-/ng-packagr-3.0.1.tgz#16f8c108d06f8dfcfb6c90c250c7b8a46889468c"
+  version "3.0.2"
+  resolved "http://192.168.2.110:4873/ng-packagr/-/ng-packagr-3.0.2.tgz#f54b00bb64d246a7ecaede172329464229f6aa45"
   dependencies:
     "@ngtools/json-schema" "^1.1.0"
     autoprefixer "^8.0.0"
@@ -5497,8 +5503,8 @@ run-queue@^1.0.0, run-queue@^1.0.3:
     aproba "^1.1.1"
 
 rxjs@^6.0.0:
-  version "6.2.0"
-  resolved "http://192.168.2.110:4873/rxjs/-/rxjs-6.2.0.tgz#e024d0e180b72756a83c2aaea8f25423751ba978"
+  version "6.2.1"
+  resolved "http://192.168.2.110:4873/rxjs/-/rxjs-6.2.1.tgz#246cebec189a6cbc143a3ef9f62d6f4c91813ca1"
   dependencies:
     tslib "^1.9.0"
 

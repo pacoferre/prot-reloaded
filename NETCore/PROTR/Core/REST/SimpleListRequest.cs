@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 
 namespace PROTR.Core.REST
 {
-    public class GetListRequest
+    public class SimpleListRequest
     {
         public string objectName { get; set; }
         public string listName { get; set; }
         public string parameter { get; set; }
-        public string other { get; set; }
     }
 }

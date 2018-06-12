@@ -209,13 +209,13 @@ namespace PROTR.Core.Lists
 
     public class ListItemRest
     {
-        public string i { get; set; } = "";
-        public string t { get; set; } = "";
+        public string key { get; set; } = "";
+        public string text { get; set; } = "";
 
-        public ListItemRest(string id, string text)
+        public ListItemRest(string key, string text)
         {
-            i = id;
-            t = text;
+            this.key = key;
+            this.text = text;
         }
     }
 }

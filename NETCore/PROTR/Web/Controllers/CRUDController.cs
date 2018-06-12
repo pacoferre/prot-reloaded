@@ -55,7 +55,7 @@ namespace PROTR.Web.Controllers
         }
 
         [HttpPost]
-        public List<ListItemRest> GetList([FromBody]GetListRequest request)
+        public List<ListItemRest> SimpleList([FromBody]SimpleListRequest request)
         {
             ListTable table = BusinessBaseProvider.ListProvider.GetList(request.objectName,
                 request.listName, request.parameter);
