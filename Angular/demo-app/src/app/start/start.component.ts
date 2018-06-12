@@ -1,6 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { ProtrEditorService, BaseEditor } from 'protr';
-import { User } from '../dtos/user';
+import { AppUser } from '../dtos/appUser';
+import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
   selector: 'app-start',
@@ -8,7 +9,25 @@ import { User } from '../dtos/user';
   styleUrls: ['./start.component.scss']
 })
 export class StartComponent extends BaseEditor {
-  constructor(@Inject('EditorService') protrEditorService: ProtrEditorService) {
-    super('AppUser', () => new User(), protrEditorService);
+
+  fullName = '';
+
+  constructor(@Inject('EditorService') protrEditorService: ProtrEditorService, private authenticationService: AuthenticationService) {
+    super('AppUser', () => new AppUser(), protrEditorService);
+  }
+
+  ready() {
+    super.ready();
+
+    this.protrEditorService.currentBusinessObjectObserver
+      .subscribe(bo => {
+        if (bo != null) {
+          const user = <AppUser>bo;
+
+          this.fullName = user.name + ' ' + user.surname;
+        }
+      });
+
+    this.authenticationService.currentUser().then(user => this.load(user.idAppUser));
   }
 }

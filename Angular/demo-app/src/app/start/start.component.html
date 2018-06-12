@@ -1,5 +1,23 @@
 <mat-card>
-  <pmat-text fieldName="name"></pmat-text>
-  <br />
-  <pmat-text fieldName="surname"></pmat-text>
+  <div layout="column">
+    <div flex>
+      Hello {{ fullName }}, you can modify your profile.
+    </div>
+    <div flex>
+      <pmat-text fieldName="name"></pmat-text>
+    </div>
+    <div flex>
+      <pmat-text fieldName="surname"></pmat-text>
+    </div>
+    <div flex>
+      <button mat-raised-button color="primary" (click)="protrEditorService.save()"
+          [disabled]="!(protrEditorService.currentCrudResponseObserver | async)?.isModified">
+        Save
+      </button>
+      <button mat-raised-button color="accent" (click)="protrEditorService.cancel()"
+          [disabled]="!(protrEditorService.currentCrudResponseObserver | async)?.isModified">
+        Cancel
+      </button>
+    </div>
+  </div>
 </mat-card>

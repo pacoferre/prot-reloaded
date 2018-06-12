@@ -1,12 +1,20 @@
 <mat-card>
   <mat-card-title>Login</mat-card-title>
   <mat-card-content>
-    <mat-form-field>
-      <input matInput placeholder="email" type="text" #email>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput placeholder="password" type="text" #password>
-    </mat-form-field>
-    <button mat-raised-button (click)="login(email.value, password.value)">login</button>
+    <div layout="column">
+      <div flex>
+        <mat-form-field flex>
+          <input matInput placeholder="email" type="text" #email autocomplete="off">
+        </mat-form-field>
+      </div>
+      <div flex>
+        <mat-form-field flex>
+          <input matInput placeholder="password" type="text" #password autocomplete="off">
+        </mat-form-field>
+      </div>
+      <div flex>
+        <button mat-raised-button (click)="login(email.value, password.value)">login</button>
+      </div>
+    </div>
   </mat-card-content>
 </mat-card>

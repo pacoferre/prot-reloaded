@@ -9,6 +9,7 @@ export class FieldControl extends BaseControl {
   @Input() fieldName: string;
   control: FormControl;
   label: string;
+  invalidText = '';
 
   constructor(protected protrEditorService: ProtrEditorService) {
     super(protrEditorService);
@@ -20,8 +21,10 @@ export class FieldControl extends BaseControl {
 
   changed() {
     if (this.protrEditorService && this.protrEditorService.currentBusinessObject) {
-      this.protrEditorService.currentBusinessObject[this.fieldName] = this.control.value;
-      this.protrEditorService.setModified();
+      if (this.protrEditorService.currentBusinessObject[this.fieldName] !== this.control.value) {
+        this.protrEditorService.currentBusinessObject[this.fieldName] = this.control.value;
+        this.protrEditorService.setModified();
+      }
     }
   }
 
@@ -31,18 +34,23 @@ export class FieldControl extends BaseControl {
     this.label = props.label;
     if (props.required) {
       this.control.setValidators([Validators.required]);
+
+      if (props.requiredErrorMessage != null && props.requiredErrorMessage !== '') {
+        this.invalidText = props.requiredErrorMessage;
+      } else {
+        this.invalidText = this.label + ' is required';
+      }
     }
 
     this.registerFieldNamesOnInit([ this.fieldName ]);
   }
 
-  load(businessObject: BusinessObject): void {
-    this.control.reset();
+  read(businessObject: BusinessObject): void {
     if (businessObject != null) {
-      this.control.setValue(businessObject[this.fieldName]);
+      this.control.setValue(businessObject[this.fieldName], { emitEvent: false });
     }
 
-    super.load(businessObject);
+    super.read(businessObject);
   }
 
   isInvalid(): boolean {

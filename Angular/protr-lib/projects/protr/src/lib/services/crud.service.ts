@@ -22,4 +22,32 @@ export class ProtrCrudService {
         });
     });
   }
+
+  load(crudRequest: CrudRequest): Promise<ICrudResponse> {
+    crudRequest.action = 'load';
+
+    return new Promise<ICrudResponse>(resolve => {
+      this.httpClient
+        .post<ICrudResponse>(this.configurationService.apiCrudPost, crudRequest)
+        .subscribe(resp => {
+          resolve(resp);
+        }, error => {
+          resolve(null);
+        });
+    });
+  }
+
+  save(crudRequest: CrudRequest): Promise<ICrudResponse> {
+    crudRequest.action = 'ok';
+
+    return new Promise<ICrudResponse>(resolve => {
+      this.httpClient
+        .post<ICrudResponse>(this.configurationService.apiCrudPost, crudRequest)
+        .subscribe(resp => {
+          resolve(resp);
+        }, error => {
+          resolve(null);
+        });
+    });
+  }
 }

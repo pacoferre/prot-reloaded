@@ -24,7 +24,7 @@ export class BaseControl implements OnInit, OnDestroy {
 
     this.subBusinessObject = this.protrEditorService.currentBusinessObjectObserver
       .subscribe(b => {
-        this.load(b);
+        this.read(b);
       });
   }
 
@@ -48,7 +48,7 @@ export class BaseControl implements OnInit, OnDestroy {
   prepare(decorator: Decorator) {
   }
 
-  load(businessObject: BusinessObject) {
+  read(businessObject: BusinessObject) {
   }
 
   modified() {

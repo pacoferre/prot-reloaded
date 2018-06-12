@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { ProtrUser } from '../dtos/user';
+import { ProtrAppUser } from '../dtos/appUser';
 import { ProtrConfigurationService } from './configuration.service';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class ProtrAuthenticationService {
-  protected _currentUserSubject: BehaviorSubject<ProtrUser>;
+  protected _currentUserSubject: BehaviorSubject<ProtrAppUser>;
 
   constructor(protected httpClient: HttpClient, protected configurationService: ProtrConfigurationService) {
   }
@@ -15,44 +15,49 @@ export class ProtrAuthenticationService {
     return this._currentUserSubject.asObservable();
   }
 
-  currentUser(): Promise<ProtrUser> {
-    return new Promise<ProtrUser>(resolve => {
+  currentUser(): Promise<ProtrAppUser> {
+    return new Promise<ProtrAppUser>(resolve => {
       if (this.isAuthenticated) {
         return resolve(this._currentUserSubject.value);
       }
 
       this.httpClient
-        .get<ProtrUser>(this.configurationService.apiCurrentUser)
+        .get<ProtrAppUser>(this.configurationService.apiCurrentUser)
         .subscribe(resp => {
           if (resp != null) {
             const user = Object.assign(this.createBlankUser(), resp);
-            this._currentUserSubject.next(user);
+            this.setCurrentUser(user);
             resolve(user);
           } else {
-            this._currentUserSubject.next(null);
+            this.setCurrentUser(null);
             resolve(null);
           }
         }, error => {
-          this._currentUserSubject.next(null);
+          this.setCurrentUser(null);
           resolve(null);
         });
     });
   }
 
+  setCurrentUser(user: ProtrAppUser) {
+    this._currentUserSubject.next(user);
+  }
+
   login(email: string, password: string): Promise<boolean> {
     return new Promise<boolean>(resolve => {
       this.httpClient
-        .post<ProtrUser>(this.configurationService.apiLogin, { email: email, password: password })
+        .post<ProtrAppUser>(this.configurationService.apiLogin, { email: email, password: password })
         .subscribe(resp => {
           if (resp != null) {
-            this._currentUserSubject.next(Object.assign(this.createBlankUser(), resp));
+            const user = Object.assign(this.createBlankUser(), resp);
+            this.setCurrentUser(user);
             resolve(true);
           } else {
-            this._currentUserSubject.next(null);
+            this.setCurrentUser(null);
             resolve(false);
           }
         }, error => {
-          this._currentUserSubject.next(null);
+          this.setCurrentUser(null);
           resolve(false);
         });
     });
@@ -76,7 +81,7 @@ export class ProtrAuthenticationService {
     return this._currentUserSubject.value != null;
   }
 
-  createBlankUser(): ProtrUser {
-    return new ProtrUser();
+  createBlankUser(): ProtrAppUser {
+    return new ProtrAppUser();
   }
 }

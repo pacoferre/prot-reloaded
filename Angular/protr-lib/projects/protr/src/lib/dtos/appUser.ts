@@ -1,7 +1,7 @@
 import { BusinessObject } from './businessObject';
 
-export class ProtrUser extends BusinessObject {
-  id: string;
+export class ProtrAppUser extends BusinessObject {
+  idAppUser: string;
   name: string;
   surname: string;
   su: boolean;

@@ -10,7 +10,7 @@ export * from './lib/dtos/businessObject';
 export * from './lib/dtos/crudRequest';
 export * from './lib/dtos/crudResponse';
 export * from './lib/dtos/decorator';
-export * from './lib/dtos/user';
+export * from './lib/dtos/appUser';
 export * from './lib/guards/authentication.guard';
 export * from './lib/interfaces/IDictionary';
 export * from './lib/services/authentication.service';

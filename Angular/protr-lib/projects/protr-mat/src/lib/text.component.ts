@@ -10,7 +10,7 @@ import { FormControl, Validators } from '@angular/forms';
         [formControl]="control">
     <mat-hint align="end">{{input.value?.length || 0}}/{{maxLength}}</mat-hint>
     <mat-error *ngIf="isInvalid()">
-      Invalid !!!
+      {{invalidText}}
     </mat-error>
   </mat-form-field>
   `,
