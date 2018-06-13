@@ -1,4 +1,5 @@
-﻿using PROTR.Core;
+﻿using Demo.Library.Business.Authors;
+using PROTR.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Demo.Library.Business
 
             //creators.Add("Customer", () => new Customer.Customer());
 
-            //decorators.Add("Customer", () => new CustomerDecorator());
+            decorators.Add("Author", () => new AuthorDecorator());
         }
     }
 }
