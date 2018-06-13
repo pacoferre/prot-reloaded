@@ -4,7 +4,6 @@ import { HttpClient } from '@angular/common/http';
 import { CrudRequest } from '../dtos/crudRequest';
 import { ICrudResponse } from '../dtos/crudResponse';
 
-@Injectable()
 export class ProtrCrudService {
   constructor(protected httpClient: HttpClient, protected configurationService: ProtrConfigurationService) {
   }

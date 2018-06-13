@@ -4,7 +4,6 @@ import { ProtrAppUser } from '../dtos/appUser';
 import { ProtrConfigurationService } from './configuration.service';
 import { HttpClient } from '@angular/common/http';
 
-@Injectable()
 export class ProtrAuthenticationService {
   protected _currentUserSubject: BehaviorSubject<ProtrAppUser>;
 

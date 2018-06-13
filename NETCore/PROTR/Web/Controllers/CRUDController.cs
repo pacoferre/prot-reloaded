@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using PROTR.Web.Dtos;
 using System.Linq;
+using PROTR.Core.DataViews;
 
 namespace PROTR.Web.Controllers
 {
@@ -53,6 +54,15 @@ namespace PROTR.Web.Controllers
 
             return resp;
         }
+
+        [HttpPost]
+        public List<DataViewColumn> ListDefinition([FromBody]ListModelDefinitionRequest request)
+        {
+            FilterBase filter = BusinessBaseProvider.Instance.GetFilter(HttpContext, request.oname, request.filterName);
+
+            return new DataView(filter).Columns;
+        }
+
 
         [HttpPost]
         public List<ListItemRest> SimpleList([FromBody]SimpleListRequest request)

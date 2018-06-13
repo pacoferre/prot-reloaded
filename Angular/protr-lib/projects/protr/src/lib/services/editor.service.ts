@@ -10,7 +10,6 @@ import { CrudRequest } from '../dtos/crudRequest';
 import { ICrudResponse } from '../dtos/crudResponse';
 import { IDictionary } from 'protr/protr';
 
-@Injectable()
 export class ProtrEditorService {
   protected _currentDecoratorSubject: BehaviorSubject<Decorator>;
   protected _initCompletedSubject: BehaviorSubject<boolean>;

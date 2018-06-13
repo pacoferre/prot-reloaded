@@ -3,16 +3,17 @@ import { ProtrConfigurationService } from './configuration.service';
 import { HttpClient } from '@angular/common/http';
 import { ISimpleListRequest } from '../dtos/simpleListRequest';
 import { ISimpleListResponseItem } from '../dtos/simpleListResponse';
-import { AsyncCache, MemoryDriver } from 'angular-async-cache';
+import { AsyncCache, CacheDriver } from 'angular-async-cache';
 import { Observable } from 'rxjs';
 
-@Injectable()
 export class ProtrSimpleListService {
   constructor(protected httpClient: HttpClient,
     protected configurationService: ProtrConfigurationService,
     protected asyncCache: AsyncCache
   ) {
   }
+
+  protected cacheDriver: CacheDriver;
 
   get(objectName: string,
       listName: string,
@@ -22,7 +23,7 @@ export class ProtrSimpleListService {
     };
     const key = this.key(objectName, listName, parameter);
     const obs = this.httpClient
-      .post<ISimpleListResponseItem[]>(this.configurationService.apiCrudPost, simpleListRequest);
+      .post<ISimpleListResponseItem[]>(this.configurationService.apiSimpleList, simpleListRequest);
 
     return this.asyncCache.wrap(obs, key, { } );
   }
@@ -30,7 +31,17 @@ export class ProtrSimpleListService {
   delete(objectName: string,
       listName: string,
       parameter: string): void {
-    throw new Error('This method must be overrided');
+    this.cacheDriver.delete(this.key(objectName, listName, parameter));
+  }
+
+  deleteList(objectName: string,
+      listName: string): void {
+    const prefix = this.key(objectName, listName, '');
+    (<string[]>this.cacheDriver.keys())
+      .filter(key => key.startsWith(prefix))
+      .forEach(key => {
+        this.cacheDriver.delete(key);
+    });
   }
 
   key(objectName: string,

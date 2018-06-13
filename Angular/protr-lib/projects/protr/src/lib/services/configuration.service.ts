@@ -3,7 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { IDictionary } from '../interfaces/IDictionary';
 import { IFieldProperty } from '../dtos/decorator';
 
-@Injectable()
 export class ProtrConfigurationService {
   constructor(protected httpClient: HttpClient) { }
 
@@ -15,6 +14,7 @@ export class ProtrConfigurationService {
   propertiesUrl = '/CRUD/Properties';
   crudPostUrl = '/CRUD/Post';
   simpleListUrl = '/CRUD/SimpleList';
+  listDefinitionUrl = '/CRUD/ListDefinition';
 
   get apiLogin() { return this.apiUrl + this.loginUrl; }
 
@@ -27,6 +27,8 @@ export class ProtrConfigurationService {
   get apiCrudPost() { return this.apiUrl + this.crudPostUrl; }
 
   get apiSimpleList() { return this.apiUrl + this.simpleListUrl; }
+
+  get apiListDefinition() { return this.apiUrl + this.listDefinitionUrl; }
 
   loadFromEnvironment(environment: any) {
     this.production = environment.production;
@@ -48,6 +50,9 @@ export class ProtrConfigurationService {
     }
     if (environment.simpleListUrl) {
       this.simpleListUrl = environment.simpleListUrl;
+    }
+    if (environment.listDefinitionUrl) {
+      this.listDefinitionUrl = environment.listDefinitionUrl;
     }
   }
 
