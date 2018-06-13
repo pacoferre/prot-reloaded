@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\PROTR\Infrastructure\PROTR.Infrastructure.csproj" />
+    <ProjectReference Include="..\Library.Business\Demo.Library.Business.csproj" />
   </ItemGroup>
 
 </Project>

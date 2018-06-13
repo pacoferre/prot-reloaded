@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Demo.Library.Infrastructure.Data
 
             try
             {
-                libraryContext.Database.EnsureCreated();
+                libraryContext.Database.Migrate();
 
                 if (!libraryContext.Users.Any())
                 {
@@ -31,6 +32,35 @@ namespace Demo.Library.Infrastructure.Data
                     await libraryContext.SaveChangesAsync();
                 }
 
+                if (!libraryContext.AuthorNationalities.Any())
+                {
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    {
+                        Name = "Spain"
+                    });
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    {
+                        Name = "France"
+                    });
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    {
+                        Name = "United Kingdom"
+                    });
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    {
+                        Name = "Germany"
+                    });
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    {
+                        Name = "EE.UU."
+                    });
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    {
+                        Name = "Italy"
+                    });
+
+                    await libraryContext.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {

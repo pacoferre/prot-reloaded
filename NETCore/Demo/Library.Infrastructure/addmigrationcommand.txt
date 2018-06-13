@@ -1,0 +1,1 @@
+﻿dotnet ef migrations add [Name] -c LibraryContext -p Demo.Library.Infrastructure.csproj -s ../Library.API/Demo.Library.API.csproj
