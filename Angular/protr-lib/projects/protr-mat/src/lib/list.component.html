@@ -1,0 +1,27 @@
+<div class="spinner-container" *ngIf="busyObservable | async">
+  <mat-spinner></mat-spinner>
+</div>
+
+<mat-table [dataSource]="dataSource">
+  <ng-container matColumnDef="seqNo">
+      <div *matHeaderCellDef>#</div>
+      <div *matCellDef="let lesson">{{lesson.seqNo}}</div>
+  </ng-container>
+  <ng-container matColumnDef="description">
+      <div *matHeaderCellDef>Description</div>
+      <div class="description-cell"
+                *matCellDef="let lesson">{{lesson.description}}</div>
+  </ng-container>
+  <ng-container matColumnDef="duration">
+      <div *matHeaderCellDef>Duration</div>
+      <div class="duration-cell"
+                *matCellDef="let lesson">{{lesson.duration}}</div>
+  </ng-container>
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns" 
+    (click)="onRowClicked(row)">
+  </mat-row>
+</mat-table>
+
+<mat-paginator [length]="(responseObservable | async)?.rowCount" [pageSize]="100"
+                [pageSizeOptions]="[100, 500, 1000]"></mat-paginator>

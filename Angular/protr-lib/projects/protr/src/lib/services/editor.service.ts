@@ -17,16 +17,16 @@ export class ProtrEditorService {
   protected _currentCrudResponseSubject: BehaviorSubject<ICrudResponse>;
   protected _busySubject: BehaviorSubject<boolean>;
 
-  public currentDecoratorObserver: Observable<Decorator>;
-  public initCompletedObserver: Observable<boolean>;
-  public currentBusinessObjectObserver: Observable<BusinessObject>;
-  public currentCrudResponseObserver: Observable<ICrudResponse>;
-  public busyObserver: Observable<boolean>;
+  public currentDecoratorObservable: Observable<Decorator>;
+  public initCompletedObservable: Observable<boolean>;
+  public currentBusinessObjectObservable: Observable<BusinessObject>;
+  public currentCrudResponseObservable: Observable<ICrudResponse>;
+  public busyObservable: Observable<boolean>;
 
   public currentBusinessObject: BusinessObject;
 
-  private initDecoratorObserversCount: number;
-  private initDecoratorObserversNotified: number;
+  private initDecoratorObservablesCount: number;
+  private initDecoratorObservablesNotified: number;
   private pendingInitSubject = false;
   private fieldNames: string[];
 
@@ -45,11 +45,11 @@ export class ProtrEditorService {
     this._currentCrudResponseSubject = new BehaviorSubject<ICrudResponse>(null);
     this._busySubject = new BehaviorSubject<boolean>(false);
 
-    this.currentDecoratorObserver = this._currentDecoratorSubject.asObservable();
-    this.initCompletedObserver = this._initCompletedSubject.asObservable();
-    this.currentBusinessObjectObserver = this._currentBusinessObjectSubject.asObservable();
-    this.currentCrudResponseObserver = this._currentCrudResponseSubject.asObservable();
-    this.busyObserver = this._busySubject.asObservable();
+    this.currentDecoratorObservable = this._currentDecoratorSubject.asObservable();
+    this.initCompletedObservable = this._initCompletedSubject.asObservable();
+    this.currentBusinessObjectObservable = this._currentBusinessObjectSubject.asObservable();
+    this.currentCrudResponseObservable = this._currentCrudResponseSubject.asObservable();
+    this.busyObservable = this._busySubject.asObservable();
   }
 
   public init(name: string, creator: () => BusinessObject) {
@@ -58,8 +58,8 @@ export class ProtrEditorService {
       .getProperties(name)
       .then(resp => {
         console.log('Init object type ' + name);
-        this.initDecoratorObserversCount = this._currentDecoratorSubject.observers.length;
-        this.initDecoratorObserversNotified = 0;
+        this.initDecoratorObservablesCount = this._currentDecoratorSubject.observers.length;
+        this.initDecoratorObservablesNotified = 0;
         this.fieldNames = [];
         this.pendingInitSubject = true;
         this._currentDecoratorSubject.next(new Decorator(name, resp));
@@ -67,7 +67,7 @@ export class ProtrEditorService {
   }
 
   public registerFieldNamesOnInit(fieldNames: string[]) {
-    this.initDecoratorObserversNotified++;
+    this.initDecoratorObservablesNotified++;
 
     fieldNames.forEach(fieldName => {
       if (this.fieldNames.indexOf(fieldName) === -1) {
@@ -76,13 +76,13 @@ export class ProtrEditorService {
       }
     });
 
-    if (this.pendingInitSubject && this.initDecoratorObserversNotified === this.initDecoratorObserversCount) {
+    if (this.pendingInitSubject && this.initDecoratorObservablesNotified === this.initDecoratorObservablesCount) {
       this.pendingInitSubject = false;
-      console.log('All observers notified for ' + this._currentDecoratorSubject.value.name);
+      console.log('All Observables notified for ' + this._currentDecoratorSubject.value.name);
 
       this.crudRequest = new CrudRequest();
       this.crudRequest.dataNames = this.fieldNames;
-      this.crudRequest.oname = this._currentDecoratorSubject.value.name;
+      this.crudRequest.objectName = this._currentDecoratorSubject.value.name;
       this._busySubject.next(true);
       this.protrCrudService
         .init(this.crudRequest)

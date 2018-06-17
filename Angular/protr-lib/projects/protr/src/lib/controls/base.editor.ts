@@ -2,19 +2,22 @@ import { ProtrEditorService } from '../services/editor.service';
 import { BaseControl } from './base.control';
 import { Decorator } from '../dtos/decorator';
 import { BusinessObject } from '../dtos/businessObject';
-import { OnInit } from '@angular/core';
+import { OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 
-export class BaseEditor extends BaseControl implements OnInit {
+export class BaseEditor extends BaseControl implements OnInit, OnDestroy {
   constructor(protected objectName: string,
       protected creator: () => BusinessObject,
       public protrEditorService: ProtrEditorService) {
     super(protrEditorService);
   }
 
+  private subInitComplete: Subscription;
+
   ngOnInit() {
     super.ngOnInit();
 
-    this.protrEditorService.initCompletedObserver
+    this.subInitComplete = this.protrEditorService.initCompletedObservable
       .subscribe(ready => {
         if (ready) {
           this.ready();
@@ -23,6 +26,14 @@ export class BaseEditor extends BaseControl implements OnInit {
 
     this.protrEditorService
       .init(this.objectName, this.creator);
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    if (this.subInitComplete) {
+      this.subInitComplete.unsubscribe();
+    }
   }
 
   ready() {

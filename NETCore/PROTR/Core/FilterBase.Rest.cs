@@ -12,18 +12,19 @@ namespace PROTR.Core
         public virtual ListModelToClient ProcessRequestAndCreateResponse(HttpContext context, ListModelFromClient request)
         {
             ListModelToClient resp = new ListModelToClient();
+            int rowCount = 0;
 
             this.FastSearchActivated = request.dofastsearch;
             this.FastSearch = request.fastsearch;
             if (!request.first)
             {
-                this.Filter = request.data;
+                this.Filter = request.filters;
                 this.topRecords = request.topRecords;
             }
 
             if (this.Filter == null)
             {
-                this.Filter = request.data;
+                this.Filter = request.filters;
                 this.Clear();
             }
 
@@ -33,14 +34,17 @@ namespace PROTR.Core
             }
 
             resp.plural = this.Decorator.Plural;
-            resp.data = this.Filter;
+            resp.filters = this.Filter;
             resp.result = Dapper.SqlMapper.ToList(this.Get(request.sortIndex,
                 (request.sortDir == "asc" ? SortDirection.Ascending : SortDirection.Descending),
-                0, 0));
+                request.pageNumber, request.rowsPerPage, ref rowCount));
             resp.fastsearch = this.FastSearch;
             resp.sortIndex = request.sortIndex;
             resp.sortDir = request.sortDir;
             resp.topRecords = this.topRecords;
+            resp.pageNumber = request.pageNumber;
+            resp.rowsPerPage = request.rowsPerPage;
+            resp.rowCount = rowCount;
 
             this.SetExtraToClientResponse(resp);
 

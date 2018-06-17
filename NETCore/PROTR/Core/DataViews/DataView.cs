@@ -11,7 +11,9 @@ namespace PROTR.Core.DataViews
         void SetDataView(DataView dataView);
 
         string GetFinalSQLQuery(DataView dataView, string whereClause, object param, int order, SortDirection sortDirection,
-            int fromRecord, int rowCount);
+            int pageNumber, int rowsPerPage);
+
+        string GetCountSQLQuery(DataView dataView, string whereClause, object param);
     }
 
     public class DataView
@@ -109,17 +111,20 @@ namespace PROTR.Core.DataViews
                 throw new Exception("No columns to show.");
             }
 
-            // {SelectColumns} {FromClause} {WhereClause} {OrderBy} {FromRecord} {RowCount}
-            query = currentDB.Dialect.GetFromToListSql.Replace("{SelectColumns}", selectColumns)
+            // {SelectColumns} {FromClause} {WhereClause} {OrderBy} {PageNumber} {RowsPerPage}
+            query = currentDB.Dialect.GetPagedListSql.Replace("{SelectColumns}", selectColumns)
                 .Replace("{SelectNamedColumns}", selectNamedColumns)
                 .Replace("{GroupByClause}", (GroupByClause == "" ? "" : "GROUP BY " + GroupByClause))
                 .Replace("{FromClause}", FromClause);
         }
 
-        public IEnumerable<dynamic> Get(string whereClause, object param, int order, SortDirection sortDirection, 
-            int fromRecord, int rowCount)
+        public IEnumerable<dynamic> Get(string whereClause, object param, int order, SortDirection sortDirection,
+            int pageNumber, int rowsPerPage, ref int rowCount)
         {
-            string sql = setter.GetFinalSQLQuery(this, whereClause, param, order, sortDirection, fromRecord, rowCount);
+            string sql = setter.GetFinalSQLQuery(this, whereClause, param, order, sortDirection, pageNumber, rowsPerPage);
+            string sqlCount = setter.GetCountSQLQuery(this, whereClause, param);
+
+            rowCount = currentDB.Query<int>(sql, param).FirstOrDefault();
 
             return currentDB.Query(sql, param);
         }

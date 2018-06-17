@@ -7,7 +7,7 @@ namespace PROTR.Core.REST
 {
     public class ModelFromClient
     {
-        public string oname { get; set; } = "";
+        public string objectName { get; set; } = "";
         public string formToken { get; set; } = "";
         public int sequence { get; set; } = 0;
         public string action { get; set; } = "";

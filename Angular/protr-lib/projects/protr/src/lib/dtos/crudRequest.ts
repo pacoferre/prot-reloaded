@@ -13,7 +13,7 @@ export class Child {
 }
 
 export class CrudRequest {
-  oname: string;
+  objectName: string;
   formToken: string;
   sequence: number;
   action: string;

@@ -15,20 +15,16 @@ export class ProtrConfigurationService {
   crudPostUrl = '/CRUD/Post';
   simpleListUrl = '/CRUD/SimpleList';
   listDefinitionUrl = '/CRUD/ListDefinition';
+  listUrl = '/CRUD/List';
 
   get apiLogin() { return this.apiUrl + this.loginUrl; }
-
   get apiLogout() { return this.apiUrl + this.logoutUrl; }
-
   get apiCurrentUser() { return this.apiUrl + this.currentUserUrl; }
-
   get apiProperties() { return this.apiUrl + this.propertiesUrl; }
-
   get apiCrudPost() { return this.apiUrl + this.crudPostUrl; }
-
   get apiSimpleList() { return this.apiUrl + this.simpleListUrl; }
-
   get apiListDefinition() { return this.apiUrl + this.listDefinitionUrl; }
+  get apiList() { return this.apiUrl + this.listUrl; }
 
   loadFromEnvironment(environment: any) {
     this.production = environment.production;
@@ -53,6 +49,9 @@ export class ProtrConfigurationService {
     }
     if (environment.listDefinitionUrl) {
       this.listDefinitionUrl = environment.listDefinitionUrl;
+    }
+    if (environment.listUrl) {
+      this.listUrl = environment.listUrl;
     }
   }
 

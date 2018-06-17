@@ -102,7 +102,7 @@ namespace PROTR.Core
             }
             ProcessCollectionsToClient(context, fromClient, model);
 
-            BusinessBaseProvider.StoreObject(this, fromClient.oname);
+            BusinessBaseProvider.StoreObject(this, fromClient.objectName);
 
             model.keyObject = Key;
             model.isNew = IsNew;

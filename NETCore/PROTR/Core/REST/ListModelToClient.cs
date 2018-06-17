@@ -13,7 +13,10 @@ namespace PROTR.Core.REST
         public string fastsearch { get; set; } = "";
         public int sortIndex { get; set; } = 1;
         public string sortDir { get; set; } = "a";
-        public Dictionary<string, string> data { get; set; } = null;
+        public Dictionary<string, string> filters { get; set; } = null;
         public int topRecords { get; set; } = 100;
+        public int pageNumber { get; set; } = 1;
+        public int rowsPerPage { get; set; } = 100;
+        public int rowCount { get; set; } = 0;
     }
 }

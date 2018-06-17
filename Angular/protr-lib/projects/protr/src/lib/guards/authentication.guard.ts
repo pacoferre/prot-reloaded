@@ -3,7 +3,6 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angul
 import { Observable } from 'rxjs';
 import { ProtrAuthenticationService } from '../services/authentication.service';
 
-@Injectable()
 export class ProtrAuthGuard implements CanActivate {
   constructor(protected authService: ProtrAuthenticationService) {
   }

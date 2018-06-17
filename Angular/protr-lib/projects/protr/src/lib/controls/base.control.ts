@@ -13,16 +13,18 @@ export class BaseControl implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subDecorator = this.protrEditorService.currentDecoratorObserver
+    this.subDecorator = this.protrEditorService.currentDecoratorObservable
       .subscribe(d => {
         if (d != null) {
           this.fieldNames = [];
           this.prepare(d);
-          this.protrEditorService.registerFieldNamesOnInit(this.fieldNames);
+          if (this.fieldNames.length > 0) {
+            this.protrEditorService.registerFieldNamesOnInit(this.fieldNames);
+          }
         }
       });
 
-    this.subBusinessObject = this.protrEditorService.currentBusinessObjectObserver
+    this.subBusinessObject = this.protrEditorService.currentBusinessObjectObservable
       .subscribe(b => {
         this.read(b);
       });

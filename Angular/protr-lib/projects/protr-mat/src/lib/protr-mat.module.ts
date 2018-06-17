@@ -41,6 +41,7 @@ import {
   MatTreeModule
 } from '@angular/material';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ProtrMatListComponent } from './list.component';
 
 @NgModule({
   imports: [
@@ -86,7 +87,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   ],
   declarations: [
     ProtrMatTextComponent,
-    ProtrMatDropdownComponent
+    ProtrMatDropdownComponent,
+    ProtrMatListComponent
   ],
   exports: [
     ProtrMatTextComponent,

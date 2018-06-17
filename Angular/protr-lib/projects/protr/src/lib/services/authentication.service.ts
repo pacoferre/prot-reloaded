@@ -10,7 +10,7 @@ export class ProtrAuthenticationService {
   constructor(protected httpClient: HttpClient, protected configurationService: ProtrConfigurationService) {
   }
 
-  currentUserObserver() {
+  currentUserObservable() {
     return this._currentUserSubject.asObservable();
   }
 

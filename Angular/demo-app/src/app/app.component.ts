@@ -30,7 +30,7 @@ export class AppComponent implements OnInit {
       });
 
     this.protrEditorService
-      .currentCrudResponseObserver
+      .currentCrudResponseObservable
       .subscribe(resp => {
         if (resp != null) {
           if (resp.errorMessage != null && resp.errorMessage !== '') {

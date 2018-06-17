@@ -109,7 +109,7 @@ namespace PROTR.Core
             = new Tuple<string, DynamicParameters>("1 = 0", null);
 
         public virtual IEnumerable<dynamic> Get(int order, SortDirection sortDirection,
-            int fromRecord, int toRecord)
+            int pageNumber, int rowsPerPage, ref int rowCount)
         {
             DataView dataView = new DataView(this);
             Tuple<string, DynamicParameters> where = Where(dataView);
@@ -119,7 +119,7 @@ namespace PROTR.Core
                 where = emptyWhere;
             }
 
-            return dataView.Get(where.Item1, where.Item2, order, sortDirection, fromRecord, topRecords);
+            return dataView.Get(where.Item1, where.Item2, order, sortDirection, pageNumber, rowsPerPage, ref rowCount);
         }
 
         public DataView GetEmpty()
@@ -143,10 +143,31 @@ namespace PROTR.Core
             dataView.FromClause = Decorator.TableNameEncapsulated;
         }
 
-        public virtual string GetFinalSQLQuery(DataView dataView, string whereClause, object param, int order,
-            SortDirection sortDirection, int fromRecord, int rowCount)
+        public virtual string GetCountSQLQuery(DataView dataView, string whereClause, object param)
         {
-            // {SelectColumns} {FromClause} {WhereClause} {OrderBy} {FromRecord} {RowCount}
+            // {SelectColumns} {FromClause} {WhereClause} {OrderBy} {PageNumber} {RowsPerPage}
+            string sql = dataView.query;
+            string where = dataView.PreWhere;
+
+            if (where == "")
+            {
+                where = whereClause;
+            }
+            else
+            {
+                where = "(" + where + ")" + (whereClause == "" ? "" : " AND " + whereClause);
+            }
+
+            sql = sql
+                .Replace("{WhereClause}", (where == "" ? "" : "WHERE " + where));
+
+            return sql;
+        }
+
+        public virtual string GetFinalSQLQuery(DataView dataView, string whereClause, object param, int order,
+            SortDirection sortDirection, int pageNumber, int rowsPerPage)
+        {
+            // {SelectColumns} {FromClause} {WhereClause} {OrderBy} {PageNumber} {RowsPerPage}
             string sql = dataView.query;
             string orderBy = dataView.firstOrderBy;
             string where = dataView.PreWhere;
@@ -191,8 +212,8 @@ namespace PROTR.Core
 
             sql = sql.Replace("{OrderBy}", orderBy)
                 .Replace("{WhereClause}", (where == "" ? "" : "WHERE " + where))
-                .Replace("{FromRecord}", fromRecord.ToString())
-                .Replace("{RowCount}", rowCount.ToString());
+                .Replace("{PageNumber}", pageNumber.ToString())
+                .Replace("{RowsPerPage}", rowsPerPage.ToString());
 
             return sql;
         }

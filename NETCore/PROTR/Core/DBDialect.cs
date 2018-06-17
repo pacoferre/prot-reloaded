@@ -25,6 +25,7 @@ namespace PROTR.Core
         public DBDialectEnum Dialect { get; }
         public string Encapsulation { get; }
         public string GetIdentitySql { get; }
+        public string GetListCountSql { get; }
         public string GetPagedListSql { get; }
         public string GetFromToListSql { get; }
         public string GetSchemaSql { get; }
@@ -164,28 +165,32 @@ namespace PROTR.Core
                 case DBDialectEnum.PostgreSQL:
                     Dialect = DBDialectEnum.PostgreSQL;
                     Encapsulation = "{0}";
-                    GetIdentitySql = string.Format("SELECT LASTVAL() AS id");
+                    GetIdentitySql = "SELECT LASTVAL() AS id";
+                    GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowsPerPage} OFFSET (({PageNumber}-1) * {RowsPerPage})";
                     GetFromToListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowCount} OFFSET ({FromRecord})";
                     break;
                 case DBDialectEnum.SQLite:
                     Dialect = DBDialectEnum.SQLite;
                     Encapsulation = "{0}";
-                    GetIdentitySql = string.Format("SELECT LAST_INSERT_ROWID() AS id");
+                    GetIdentitySql = "SELECT LAST_INSERT_ROWID() AS id";
+                    GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowsPerPage} OFFSET (({PageNumber}-1) * {RowsPerPage})";
                     GetFromToListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowCount} OFFSET ({FromRecord})";
                     break;
                 case DBDialectEnum.MySQL:
                     Dialect = DBDialectEnum.MySQL;
                     Encapsulation = "`{0}`";
-                    GetIdentitySql = string.Format("SELECT LAST_INSERT_ID() AS id");
+                    GetIdentitySql = "SELECT LAST_INSERT_ID() AS id";
+                    GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {Offset},{RowsPerPage}";
                     GetFromToListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {FromRecord},{RowCount}";
                     break;
                 default:
                     Dialect = DBDialectEnum.SQLServer;
                     Encapsulation = "[{0}]";
-                    GetIdentitySql = string.Format("SELECT CAST(SCOPE_IDENTITY() AS BIGINT) AS [id]");
+                    GetIdentitySql = "SELECT CAST(SCOPE_IDENTITY() AS BIGINT) AS [id]";
+                    GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "SELECT {SelectNamedColumns} FROM (SELECT ROW_NUMBER() OVER(ORDER BY {OrderBy}) AS PagedNumber, {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u WHERE PagedNUMBER BETWEEN (({PageNumber}-1) * {RowsPerPage} + 1) AND ({PageNumber} * {RowsPerPage})";
                     GetFromToListSql = "SELECT {SelectNamedColumns} FROM (SELECT ROW_NUMBER() OVER(ORDER BY {OrderBy}) AS PagedNumber, {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u WHERE PagedNUMBER BETWEEN ({FromRecord} + 1) AND ({FromRecord} + {RowCount})";
                     GetSchemaSql = @"SELECT col.COLUMN_NAME AS ColumnName

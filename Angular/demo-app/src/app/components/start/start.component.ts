@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { ProtrEditorService, BaseEditor } from 'protr';
-import { AppUser } from '../dtos/appUser';
-import { AuthenticationService } from '../services/authentication.service';
+import { AppUser } from '../../dtos/appUser';
+import { AuthenticationService } from '../../services/authentication.service';
 
 @Component({
   selector: 'app-start',
@@ -19,7 +19,7 @@ export class StartComponent extends BaseEditor {
   ready() {
     super.ready();
 
-    this.protrEditorService.currentBusinessObjectObserver
+    this.protrEditorService.currentBusinessObjectObservable
       .subscribe(bo => {
         if (bo != null) {
           const user = <AppUser>bo;

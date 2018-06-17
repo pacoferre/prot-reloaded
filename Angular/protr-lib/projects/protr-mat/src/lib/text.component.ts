@@ -1,6 +1,5 @@
-import { Component, Inject, Input } from '@angular/core';
-import { FieldControl, ProtrEditorService, Decorator, BusinessObject } from 'protr';
-import { FormControl, Validators } from '@angular/forms';
+import { Component, Inject } from '@angular/core';
+import { FieldControl, ProtrEditorService, Decorator } from 'protr';
 
 @Component({
   selector: 'pmat-text',
@@ -19,7 +18,7 @@ import { FormControl, Validators } from '@angular/forms';
 export class ProtrMatTextComponent extends FieldControl {
   maxLength: number;
 
-  constructor(@Inject('EditorService') protected protrEditorService: ProtrEditorService) {
+  constructor(@Inject('EditorService') protrEditorService: ProtrEditorService) {
     super(protrEditorService);
   }
 

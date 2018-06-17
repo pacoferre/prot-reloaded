@@ -6,7 +6,7 @@ namespace PROTR.Core.REST
 {
     public class ListModelDefinitionRequest
     {
-        public string oname { get; set; } = "";
+        public string objectName { get; set; } = "";
         public string filterName { get; set; } = "";
     }
 }

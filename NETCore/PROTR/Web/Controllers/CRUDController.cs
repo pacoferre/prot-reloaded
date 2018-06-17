@@ -46,11 +46,11 @@ namespace PROTR.Web.Controllers
         public ListModelToClient List([FromBody]ListModelFromClient request)
         {
             ListModelToClient resp;
-            FilterBase filter = BusinessBaseProvider.Instance.GetFilter(HttpContext, request.oname, request.filterName);
+            FilterBase filter = BusinessBaseProvider.Instance.GetFilter(HttpContext, request.objectName, request.filterName);
 
             resp = filter.ProcessRequestAndCreateResponse(HttpContext, request);
 
-            BusinessBaseProvider.StoreFilter(HttpContext, filter, request.oname, request.filterName);
+            BusinessBaseProvider.StoreFilter(HttpContext, filter, request.objectName, request.filterName);
 
             return resp;
         }
@@ -58,7 +58,7 @@ namespace PROTR.Web.Controllers
         [HttpPost]
         public List<DataViewColumn> ListDefinition([FromBody]ListModelDefinitionRequest request)
         {
-            FilterBase filter = BusinessBaseProvider.Instance.GetFilter(HttpContext, request.oname, request.filterName);
+            FilterBase filter = BusinessBaseProvider.Instance.GetFilter(HttpContext, request.objectName, request.filterName);
 
             return new DataView(filter).Columns;
         }
@@ -97,7 +97,7 @@ namespace PROTR.Web.Controllers
                         fromClient.root.key = "0";
                     }
 
-                    return new JsonResult(BusinessBaseProvider.RetreiveObject(HttpContext, fromClient.oname,
+                    return new JsonResult(BusinessBaseProvider.RetreiveObject(HttpContext, fromClient.objectName,
                         fromClient.root.key).PerformActionAndCreateResponse(HttpContext, fromClient));
                 }
 

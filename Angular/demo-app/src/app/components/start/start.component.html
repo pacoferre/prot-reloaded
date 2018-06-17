@@ -11,11 +11,11 @@
     </div>
     <div flex>
       <button mat-raised-button color="primary" (click)="protrEditorService.save()"
-          [disabled]="!(protrEditorService.currentCrudResponseObserver | async)?.isModified">
+          [disabled]="!(protrEditorService.currentCrudResponseObservable | async)?.isModified">
         Save
       </button>
       <button mat-raised-button color="accent" (click)="protrEditorService.cancel()"
-          [disabled]="!(protrEditorService.currentCrudResponseObserver | async)?.isModified">
+          [disabled]="!(protrEditorService.currentCrudResponseObservable | async)?.isModified">
         Cancel
       </button>
     </div>

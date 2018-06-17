@@ -9,8 +9,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ProtrMatModule } from 'protr-mat';
 
 import { AppComponent } from './app.component';
-import { LoginComponent } from './login/login.component';
-import { StartComponent } from './start/start.component';
+import { LoginComponent } from './components/login/login.component';
+import { StartComponent } from './components/start/start.component';
 
 import { AuthGuard } from './guards/authentication.guard';
 
@@ -19,18 +19,13 @@ import { ConfigurationService } from './services/configuration.service';
 import { EditorService } from './services/editor.service';
 import { CrudService } from './services/crud.service';
 import { SimpleListService } from './services/simpleList.service';
-
-const routes: Routes = [
-  { path: 'start', component: StartComponent, canActivate: [ AuthGuard ] },
-  { path: 'login', component: LoginComponent },
-  { path: '', component : StartComponent, canActivate: [ AuthGuard ] }
-];
-
 import {
   AsyncCacheModule,
   AsyncCacheOptions,
   MemoryDriver
 } from 'angular-async-cache';
+import { FilteringService } from './services/filtering.service';
+import { UserListComponent } from './components/users/user.list.component';
 
 export function asyncCacheOptionsFactory(): AsyncCacheOptions {
   return new AsyncCacheOptions({
@@ -45,11 +40,19 @@ export function asyncCacheOptionsFactory(): AsyncCacheOptions {
   });
 }
 
+const routes: Routes = [
+  { path: 'start', component: StartComponent, canActivate: [ AuthGuard ] },
+  { path: 'users', component: UserListComponent, canActivate: [ AuthGuard ] },
+  { path: 'login', component: LoginComponent },
+  { path: '', component : StartComponent, canActivate: [ AuthGuard ],  }
+];
+
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    StartComponent
+    StartComponent,
+    UserListComponent
   ],
   imports: [
     BrowserModule,
@@ -71,7 +74,8 @@ export function asyncCacheOptionsFactory(): AsyncCacheOptions {
     AuthenticationService,
     { provide: 'EditorService', useClass: EditorService },
     { provide: 'CrudService', useClass: CrudService },
-    { provide: 'SimpleListService', useClass: SimpleListService }
+    { provide: 'SimpleListService', useClass: SimpleListService },
+    { provide: 'FilteringService', useClass: FilteringService }
   ],
   bootstrap: [ AppComponent ]
 })
