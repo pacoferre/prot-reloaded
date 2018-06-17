@@ -26,6 +26,7 @@ import {
 } from 'angular-async-cache';
 import { FilteringService } from './services/filtering.service';
 import { UserListComponent } from './components/users/user.list.component';
+import { AuthorListComponent } from './components/authors/author.list.component';
 
 export function asyncCacheOptionsFactory(): AsyncCacheOptions {
   return new AsyncCacheOptions({
@@ -43,6 +44,7 @@ export function asyncCacheOptionsFactory(): AsyncCacheOptions {
 const routes: Routes = [
   { path: 'start', component: StartComponent, canActivate: [ AuthGuard ] },
   { path: 'users', component: UserListComponent, canActivate: [ AuthGuard ] },
+  { path: 'authors', component: AuthorListComponent, canActivate: [ AuthGuard ] },
   { path: 'login', component: LoginComponent },
   { path: '', component : StartComponent, canActivate: [ AuthGuard ],  }
 ];
@@ -52,7 +54,8 @@ const routes: Routes = [
     AppComponent,
     LoginComponent,
     StartComponent,
-    UserListComponent
+    UserListComponent,
+    AuthorListComponent
   ],
   imports: [
     BrowserModule,

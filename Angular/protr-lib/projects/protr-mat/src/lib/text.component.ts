@@ -12,8 +12,7 @@ import { FieldControl, ProtrEditorService, Decorator } from 'protr';
       {{invalidText}}
     </mat-error>
   </mat-form-field>
-  `,
-  styles: []
+  `
 })
 export class ProtrMatTextComponent extends FieldControl {
   maxLength: number;

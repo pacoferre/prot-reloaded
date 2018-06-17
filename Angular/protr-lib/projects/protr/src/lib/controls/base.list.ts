@@ -3,9 +3,8 @@ import { ProtrEditorService } from '../services/editor.service';
 import { BaseControl } from './base.control';
 import { IListDefinitionColumn } from '../dtos/listDefinitionColumn';
 import { ProtrFilteringService } from '../services/filtering.service';
-import { Subscription, Observable } from 'rxjs';
-import { ListRequest } from '../dtos/listRequest';
-import { IListResponse } from '../dtos/listResponse';
+import { Observable } from 'rxjs';
+import { ListResponse } from '../dtos/listResponse';
 
 export class BaseList extends BaseControl implements OnInit, OnDestroy {
   @Input() objectName = '';
@@ -37,7 +36,7 @@ export class BaseList extends BaseControl implements OnInit, OnDestroy {
     return this.obsListDefinition;
   }
 
-  get responseObservable(): Observable<IListResponse> {
+  get responseObservable(): Observable<ListResponse> {
     return this.protrFilteringService.listResponseObservable(this.objectName, this.filterName);
   }
 

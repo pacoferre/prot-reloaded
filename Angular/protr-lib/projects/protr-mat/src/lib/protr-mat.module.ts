@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProtrMatTextComponent } from './text.component';
 import { ProtrMatDropdownComponent } from './drop-down.component';
+import { ProtrMatListComponent } from './list.component';
 import {
   MatAutocompleteModule,
   MatBadgeModule,
@@ -41,7 +42,6 @@ import {
   MatTreeModule
 } from '@angular/material';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ProtrMatListComponent } from './list.component';
 
 @NgModule({
   imports: [
@@ -92,6 +92,8 @@ import { ProtrMatListComponent } from './list.component';
   ],
   exports: [
     ProtrMatTextComponent,
+    ProtrMatDropdownComponent,
+    ProtrMatListComponent,
     MatAutocompleteModule,
     MatBadgeModule,
     MatBottomSheetModule,
