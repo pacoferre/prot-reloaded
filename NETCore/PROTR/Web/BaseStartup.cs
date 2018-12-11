@@ -76,11 +76,14 @@ namespace PROTR.Web
 
             app.UseSession();
 
-            app.UseCors(builder =>
-                builder
-                    .WithOrigins("http://localhost:4200")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader());
+            if (env.IsDevelopment())
+            {
+                app.UseCors(builder =>
+                    builder
+                        .WithOrigins("http://localhost:4200")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+            }
 
             app.UseMvc();
 

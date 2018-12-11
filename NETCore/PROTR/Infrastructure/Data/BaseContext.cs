@@ -13,15 +13,15 @@ namespace PROTR.Infrastructure.Data
         {
         }
 
-        public DbSet<AppUser> Users { get; set; }
+        public DbSet<AppUserModel> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<AppUser>(ConfigureAppUser);
+            builder.Entity<AppUserModel>(ConfigureAppUser);
         }
 
-        private void ConfigureAppUser(EntityTypeBuilder<AppUser> builder)
+        private void ConfigureAppUser(EntityTypeBuilder<AppUserModel> builder)
         {
             builder.ToTable("AppUser");
 

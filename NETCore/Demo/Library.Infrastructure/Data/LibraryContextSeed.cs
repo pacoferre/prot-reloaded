@@ -21,7 +21,7 @@ namespace Demo.Library.Infrastructure.Data
 
                 if (!libraryContext.Users.Any())
                 {
-                    libraryContext.Users.Add(new PROTR.Core.Security.EF.AppUser
+                    libraryContext.Users.Add(new PROTR.Core.Security.EF.AppUserModel
                     {
                         Name = "Demo",
                         Surname = "User",

@@ -109,7 +109,7 @@ namespace PROTR.Core
             return readed;
         }
 
-        public virtual void AfterReadFromDB()
+        protected virtual void AfterReadFromDB()
         {
             foreach (BusinessCollectionBase c in relatedCollections.Values)
             {

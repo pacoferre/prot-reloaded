@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PROTR.Core.Security.EF
 {
-    public class AppUser
+    public class AppUserModel
     {
         public int IdAppUser { get; set; }
         public string Name { get; set; }

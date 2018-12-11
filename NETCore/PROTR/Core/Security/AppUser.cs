@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PROTR.Core.Security.EF;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace PROTR.Core.Security
         }
     }
 
-    public partial class AppUser : BusinessBase
+    public partial class AppUser : BusinessBaseModel<AppUserModel>
     {
         public AppUser()
         {
@@ -31,25 +32,11 @@ namespace PROTR.Core.Security
         {
         }
 
-        public EF.AppUser MapToEF()
-        {
-            return new EF.AppUser()
-            {
-                IdAppUser = (int)this["idAppUser"],
-                Name = this["name"].NoNullString(),
-                Surname = this["name"].NoNullString(),
-                Su = this["su"].NoNullBool(),
-                Email = this["email"].NoNullString(),
-                Password = "",
-                Deactivated = this["deactivated"].NoNullBool()
-            };
-        }
-
         public override string Description
         {
             get
             {
-                return this["name"] + " " + this["surname"];
+                return D.Name + " " + D.Surname;
             }
         }
 
