@@ -9,6 +9,11 @@ namespace PROTR.Core.Specialized
     {
         public string externalFieldNameM { get; set; }
 
+        public N2MDecorator(BusinessBaseProvider provider) : base(provider)
+        {
+
+        }
+
         protected override void SetCustomProperties()
         {
             PropertyDefinition external = new PropertyDefinition(externalFieldNameM, externalFieldNameM, typeof(Int32));
@@ -30,7 +35,7 @@ namespace PROTR.Core.Specialized
 
         protected string[] opcCampoOtros;
 
-        public N2M(string objectName) : base(objectName)
+        public N2M(ContextProvider contextProvider, string objectName) : base(contextProvider, objectName)
         {
         }
 
@@ -61,7 +66,7 @@ namespace PROTR.Core.Specialized
             string sqlExists = "Select count(*) From " + Decorator.TableNameEncapsulated
                 + " WHERE " + Decorator.ListProperties[0].FieldName + " = " + Parent.Parent.Key
                 + " AND " + Decorator.ListProperties[1].FieldName + " = " + externalID;
-            bool exists = DB.Instance.QueryFirstOrDefault<int>(sqlExists) != 0;
+            bool exists = contextProvider.DbContext.QueryFirstOrDefault<int>(sqlExists) != 0;
 
             if (Parent.Parent.IsDeleting || !active)
             {

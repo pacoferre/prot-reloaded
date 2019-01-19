@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using PROTR.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Library.API.Controllers
     [ApiController]
     public class AuthenticationController : PROTR.Web.Controllers.AuthenticationController
     {
-        public AuthenticationController(IMemoryCache memoryCache) : base(memoryCache)
+        public AuthenticationController(IMemoryCache memoryCache, ContextProvider contextProvider) : base(memoryCache, contextProvider)
         {
 
         }

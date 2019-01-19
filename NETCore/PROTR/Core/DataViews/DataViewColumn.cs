@@ -32,7 +32,7 @@ namespace PROTR.Core.DataViews
         {
             BasicType = property.BasicType;
             IsID = property.IsPrimaryKey;
-            Hidden = property.IsIdentity || property.IsPrimaryKey;
+            Hidden = property.IsPrimaryKey;
             Expression = tableNameEncapsulated + "." + property.FieldName;
             Label = property.Label;
 

@@ -17,44 +17,30 @@ namespace PROTR.Core
         public static Dictionary<string, string> TableSchemas { get; set; } = new Dictionary<string, string>();
         public static Dictionary<string, string> ObjectToDBTable { get; set; } = new Dictionary<string, string>();
 
-        public Func<string, int, BusinessBase> DefaultBusinessBase =
-            (objectName, dbNumber) => new BusinessBase(objectName, dbNumber);
-        public Func<BusinessBaseDecorator> DefaultBusinessBaseDecorator =
-            () => new BusinessBaseDecorator();
+        public Func<ContextProvider, string, int, BusinessBase> DefaultBusinessBase;
+        public Func<BusinessBaseDecorator> DefaultBusinessBaseDecorator;
 
-        protected Dictionary<string, Func<BusinessBase>> creators = new Dictionary<string, Func<BusinessBase>>();
+        protected Dictionary<string, Func<ContextProvider, BusinessBase>> creators = new Dictionary<string, Func<ContextProvider, BusinessBase>>();
         protected Dictionary<string, Func<BusinessBaseDecorator>> decorators = new Dictionary<string, Func<BusinessBaseDecorator>>();
         private ConcurrentDictionary<string, Lazy<BusinessBaseDecorator>>
             decoratorsCreators = new ConcurrentDictionary<string, Lazy<BusinessBaseDecorator>>();
-        public static BusinessBaseProvider Instance { get; private set; }
-        private static IHttpContextAccessor HttpContextAccessor = null;
-        private static ConnectionMultiplexer TheCache = null;
-        public static ListProvider ListProvider { get; private set; }
+        public ListProvider ListProvider { get; private set; }
+        private ConnectionMultiplexer TheCache = null;
 
-        public static void Configure(IHttpContextAccessor httpContextAccessor, ConnectionMultiplexer theCache,
-            BusinessBaseProvider instance, IConfiguration configuration)
+        public void Configure(IConfiguration configuration, ConnectionMultiplexer theCache)
         {
-            HttpContextAccessor = httpContextAccessor;
-            TheCache = theCache;
-            Instance = instance;
-            DB.Configuration = configuration;
+            ContextProvider.Configuration = configuration;
 
-            Instance.RegisterBusinessCreators();
-
-            AppUser.SALT = Encoding.ASCII.GetBytes(DB.Configuration.GetSection("Security")["SALT"]).Take(16).ToArray();
+            AppUser.SALT = Encoding.ASCII.GetBytes(configuration.GetSection("Security")["SALT"]).Take(16).ToArray();
 
             ListProvider = new ListProvider();
+            TheCache = theCache;
+
+            DefaultBusinessBase = (contextProvider, objectName, dbNumber) => new BusinessBase(contextProvider, objectName, dbNumber);
+            DefaultBusinessBaseDecorator = () => new BusinessBaseDecorator(this);
         }
 
-        public static HttpContext HttpContext
-        {
-            get
-            {
-                return HttpContextAccessor?.HttpContext;
-            }
-        }
-
-        public static string GetDBTableFor(string objectName)
+        public string GetDBTableFor(string objectName)
         {
             if (ObjectToDBTable.Keys.Contains(objectName))
             {
@@ -66,21 +52,21 @@ namespace PROTR.Core
 
         public virtual void RegisterBusinessCreators()
         {
-            creators.Add("AppUser", () => new Security.AppUser());
-            decorators.Add("AppUser", () => new Security.AppUserDecorator());
+            creators.Add("AppUser", (contextProvider) => new Security.AppUser(contextProvider));
+            decorators.Add("AppUser", () => new Security.AppUserDecorator(this));
 
-            creators.Add("AppUserNoDB", () => new Security.AppUserNoDB());
-            decorators.Add("AppUserNoDB", () => new Security.AppUserNoDBDecorator());
+            creators.Add("AppUserNoDB", (contextProvider) => new Security.AppUserNoDB(this));
+            decorators.Add("AppUserNoDB", () => new Security.AppUserNoDBDecorator(this));
         }
 
-        public virtual BusinessBase CreateObject(string objectName, int dbNumber = 0)
+        public virtual BusinessBase CreateObject(ContextProvider contextProvider, string objectName, int dbNumber = 0)
         {
             BusinessBase obj;
-            Func<BusinessBase> creator;
+            Func<ContextProvider, BusinessBase> creator;
 
             if (creators.TryGetValue(objectName, out creator))
             {
-                obj = creator.Invoke();
+                obj = creator.Invoke(contextProvider);
 
                 if (dbNumber != 0)
                 {
@@ -89,33 +75,33 @@ namespace PROTR.Core
             }
             else
             {
-                obj = DefaultBusinessBase(objectName, dbNumber);
+                obj = DefaultBusinessBase(contextProvider, objectName, dbNumber);
             }
 
             return obj;
         }
 
-        public bool IsDecoratorCreated(string name, int dbNumber = 0)
+        public bool IsDecoratorCreated(ContextProvider contextProvider, string name, int dbNumber = 0)
         {
-            return GetLazyDecorator(name, dbNumber).IsValueCreated;
+            return GetLazyDecorator(contextProvider, name, dbNumber).IsValueCreated;
         }
 
-        public BusinessBaseDecorator GetDecorator(string name, int dbNumber = 0)
+        public BusinessBaseDecorator GetDecorator(ContextProvider contextProvider, string name, int dbNumber = 0)
         {
-            return GetLazyDecorator(name, dbNumber).Value;
+            return GetLazyDecorator(contextProvider, name, dbNumber).Value;
         }
 
-        private Lazy<BusinessBaseDecorator> GetLazyDecorator(string name, int dbNumber = 0)
+        private Lazy<BusinessBaseDecorator> GetLazyDecorator(ContextProvider contextProvider, string name, int dbNumber = 0)
         {
             return decoratorsCreators.GetOrAdd(
                 name,
                 new Lazy<BusinessBaseDecorator>(
-                    () => GetDecoratorInternal(name, dbNumber),
+                    () => GetDecoratorInternal(contextProvider, name, dbNumber),
                     LazyThreadSafetyMode.ExecutionAndPublication
                 ));
         }
 
-        private BusinessBaseDecorator GetDecoratorInternal(string objectName, int dbNumber)
+        private BusinessBaseDecorator GetDecoratorInternal(ContextProvider contextProvider, string objectName, int dbNumber)
         {
             BusinessBaseDecorator decorator;
 
@@ -127,149 +113,131 @@ namespace PROTR.Core
             {
                 decorator = DefaultBusinessBaseDecorator();
             }
-            decorator.SetProperties(objectName, dbNumber);
+            decorator.SetProperties(contextProvider, objectName, dbNumber);
 
             return decorator;
         }
 
-        public FilterBase GetFilter(HttpContext context, string objectName, string filterName = "")
+        public FilterBase GetFilter(ContextProvider contextProvider, string objectName, string filterName = "")
         {
-            AppUser user = AppUser.GetAppUser(context);
-            FilterBase filter = GetDecorator(objectName, 0).GetFilter(filterName);
-            int dbNumber = filter.Decorator.DBNumber;
-            string filterKey = FilterKey(user, objectName, filterName, filter.Decorator.DBNumber);
+            AppUser user = contextProvider.GetAppUser();
+            string filterKey = FilterKey(user, objectName, filterName);
             object objTemp;
             byte[] data;
 
-            if (context.Items.TryGetValue(filterKey, out objTemp))
-            {
-                filter = (FilterBase)objTemp;
-            }
-            else
-            {
-                data = GetData(filterKey);
+            FilterBase filter = GetDecorator(contextProvider, objectName, 0).GetFilter(contextProvider, filterName);
 
-                if (data != null)
+            data = GetData(filterKey);
+
+            if (data != null)
+            {
+                try
                 {
-                    try
-                    {
-                        filter.Deserialize(data);
-                    }
-                    catch
-                    {
-                        // Sometimes Redis returns bad data.
-                    }
+                    filter.Deserialize(data);
                 }
-                context.Items[filterKey] = filter;
+                catch
+                {
+                    // Sometimes Redis returns bad data.
+                }
             }
 
             return filter;
         }
 
-        public static void StoreFilter(HttpContext context, FilterBase filter, string objectName, string filterName)
+        public void StoreFilter(ContextProvider contextProvider, FilterBase filter, string objectName, string filterName)
         {
-            AppUser user = AppUser.GetAppUser(context);
-            int dbNumber = filter.Decorator.DBNumber;
-            string filterKey = FilterKey(user, objectName, filterName, filter.Decorator.DBNumber);
-
+            AppUser user = contextProvider.GetAppUser();
+            string filterKey = FilterKey(user, objectName, filterName);
             StoreData(filterKey, filter.Serialize());
         }
 
-        private static string FilterKey(AppUser user, string objectName, string filterName, int dbNumber)
+        private string FilterKey(AppUser user, string objectName, string filterName)
         {
-            return "F_" + objectName + "_" + filterName + "_" + dbNumber + "_" + user.Key;
+            return "F_" + objectName + "_" + filterName + "_" + user.Key;
         }
 
-        private static string ObjectKey(string objectName, int dbNumber, string key)
+        private string ObjectKey(string objectName, int dbNumber, string key)
         {
             return "O_" + objectName + "_" + dbNumber + "_" + key;
         }
 
-        public static void StoreObject(BusinessBase obj, string objectName)
+        public void StoreObject(BusinessBase obj, string objectName)
         {
             string objectKey = ObjectKey(objectName, obj.Decorator.DBNumber, obj.Key);
 
             StoreData(objectKey, obj.Serialize());
         }
 
-        public static void StoreData(string key, byte[] data)
+        public void StoreData(string key, byte[] data)
         {
             TheCache.GetDatabase().StringSetAsync(key, data, TimeSpan.FromMinutes(30), When.Always, CommandFlags.FireAndForget);
         }
 
-        public static bool ExistsData(string key)
+        public bool ExistsData(string key)
         {
             return TheCache.GetDatabase().KeyExists(key);
         }
 
-        public static byte[] GetData(string key)
+        public byte[] GetData(string key)
         {
             return TheCache.GetDatabase().StringGet(key);
         }
 
-        public static void RemoveData(string key)
+        public void RemoveData(string key)
         {
             TheCache.GetDatabase().KeyDeleteAsync(key, CommandFlags.FireAndForget);
         }
 
-        public static BusinessBase RetreiveObject(HttpContext context, string objectName, string key)
+        public BusinessBase RetreiveObject(ContextProvider contextProvider, string objectName, string key)
         {
-            return RetreiveObject(context, objectName, 0, key);
+            return RetreiveObject(contextProvider, objectName, 0, key);
         }
 
-        public static BusinessBase RetreiveObject(HttpContext context, string objectName, int dbNumber, string key)
+        public BusinessBase RetreiveObject(ContextProvider contextProvider, string objectName, int dbNumber, string key)
         {
             string objectKey = ObjectKey(objectName, dbNumber, key);
-            object objTemp;
-            BusinessBase obj;
-            byte[] data;
-
-            if (context.Items.TryGetValue(objectKey, out objTemp))
-            {
-                obj = (BusinessBase)objTemp;
-            }
-            else
-            {
-                bool readFromDB = true;
-
-                obj = Instance.CreateObject(objectName, dbNumber);
-
-                data = GetData(objectKey);
-
-                if (data != null)
+            BusinessBase objResp = contextProvider.BusinessItems.GetOrAdd(objectKey, (theKey) =>
                 {
-                    try
+                    byte[] data;
+                    bool readFromDB = true;
+                    BusinessBase obj = CreateObject(contextProvider, objectName, dbNumber);
+
+                    data = GetData(objectKey);
+
+                    if (data != null)
                     {
-                        obj.Deserialize(data);
-                        readFromDB = false;
-                    }
-                    catch
-                    {
-                        // Sometimes Redis returns bad data.
-                    }
-                }
-                if (readFromDB)
-                {
-                    if (key != "0" && key[0] != '-')
-                    {
-                        obj.ReadFromDB(key);
-                    }
-                    else
-                    {
-                        if (!obj.IsNew)
+                        try
                         {
-                            obj.SetNew();
-                            objectKey = obj.Key;
+                            obj.Deserialize(data);
+                            readFromDB = false;
+                        }
+                        catch
+                        {
+                            // Sometimes Redis returns bad data.
                         }
                     }
+                    if (readFromDB)
+                    {
+                        if (key != "0" && key[0] != '-')
+                        {
+                            obj.ReadFromDB(key);
+                        }
+                        else
+                        {
+                            if (!obj.IsNew)
+                            {
+                                obj.SetNew();
+                                objectKey = obj.Key;
+                            }
+                        }
 
-                    StoreObject(obj, objectName);
-                }
+                        StoreObject(obj, objectName);
+                    }
 
-                context.Items[objectKey] = obj;
-            }
+                    return obj;
+                });
 
-            return obj;
+            return objResp;
         }
     }
 }

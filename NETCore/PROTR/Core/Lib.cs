@@ -343,11 +343,64 @@ namespace PROTR.Core
             return m;
         }
 
+        private static Dictionary<Type, BasicType> basicTypesDict = new Dictionary<Type, BasicType>() {
+            { typeof(Int32), BasicType.Number },
+            { typeof(bool), BasicType.Bit },
+            { typeof(Int64), BasicType.Number },
+            { typeof(Int16), BasicType.Number },
+            { typeof(Byte), BasicType.Number },
+            { typeof(Single), BasicType.Number },
+            { typeof(Double), BasicType.Number },
+            { typeof(string), BasicType.Text },
+            { typeof(DateTime), BasicType.DateTime },
+            { typeof(Decimal), BasicType.Number },
+            { typeof(Byte[]), BasicType.Bynary },
+            { typeof(Guid), BasicType.GUID },
+        };
+
+        public static BasicType GetBasicType(Type type)
+        {
+            return basicTypesDict[type];
+        }
+
+        public static List<object[]> ToList(IEnumerable<dynamic> data)
+        {
+            return ((IDictionary<string, object[]>)data).Values.ToList();
+        }
+
         private static System.TimeSpan span = new System.TimeSpan((new DateTime(1970, 1, 1)).Ticks);
 
         public static long GetJavascriptTimestamp(System.DateTime input)
         {
             return (long)(input.Subtract(span).Ticks / 10000);
+        }
+
+        private static readonly long BaseDateTicks = new DateTime(1900, 1, 1).Ticks;
+
+        public static Guid GenerateComb()
+        {
+            byte[] guidArray = Guid.NewGuid().ToByteArray();
+
+            DateTime now = DateTime.UtcNow;
+
+            // Get the days and milliseconds which will be used to build the byte string 
+            TimeSpan days = new TimeSpan(now.Ticks - BaseDateTicks);
+            TimeSpan msecs = now.TimeOfDay;
+
+            // Convert to a byte array 
+            // Note that SQL Server is accurate to 1/300th of a millisecond so we divide by 3.333333 
+            byte[] daysArray = BitConverter.GetBytes(days.Days);
+            byte[] msecsArray = BitConverter.GetBytes((long)(msecs.TotalMilliseconds / 3.333333));
+
+            // Reverse the bytes to match SQL Servers ordering 
+            Array.Reverse(daysArray);
+            Array.Reverse(msecsArray);
+
+            // Copy the bytes into the guid 
+            Array.Copy(daysArray, daysArray.Length - 2, guidArray, guidArray.Length - 6, 2);
+            Array.Copy(msecsArray, msecsArray.Length - 4, guidArray, guidArray.Length - 4, 4);
+
+            return new Guid(guidArray);
         }
 
         private static string UNT_BYTE = "Byte";

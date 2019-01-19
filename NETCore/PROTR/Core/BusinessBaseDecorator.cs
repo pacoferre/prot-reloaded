@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace PROTR.Core
 {
@@ -26,7 +27,6 @@ namespace PROTR.Core
 
         public bool[] setModified;
         private Dictionary<string, int> fieldNameLookup;
-        protected DBDialect dialect = null;
         protected int dbNumber;
         protected string tableName;
         protected string tableNameEncapsulated;
@@ -34,17 +34,11 @@ namespace PROTR.Core
         protected string[] names;
         protected PropertyDefinition firstStringProperty;
 
-        private Lazy<string> selectBuilder;
-        private Lazy<string> insertBuilder;
-        private Lazy<string> updateBuilder;
-        private Lazy<string> deleteBuilder;
+        protected BusinessBaseProvider provider;
 
-        public BusinessBaseDecorator()
+        public BusinessBaseDecorator(BusinessBaseProvider provider)
         {
-            selectBuilder = new Lazy<string>(PrepareSelectQuery);
-            insertBuilder = new Lazy<string>(PrepareInsertQuery);
-            updateBuilder = new Lazy<string>(PrepareUpdateQuery);
-            deleteBuilder = new Lazy<string>(PrepareDeleteQuery);
+            this.provider = provider;
         }
 
         public int DBNumber
@@ -79,19 +73,15 @@ namespace PROTR.Core
                 fieldNameLookup.TryGetValue(name, out result)) ? result : -1;
         }
 
-        public virtual void SetProperties(string objectName, int dbNumber)
+        public virtual void SetProperties(ContextProvider contextProvider, string objectName, int dbNumber)
         {
-            string tableName = BusinessBaseProvider.GetDBTableFor(objectName);
+            string tableName = provider.GetDBTableFor(objectName);
 
             this.dbNumber = dbNumber;
             this.objectName = objectName;
-
-            dialect = DB.InstanceNumber(dbNumber).Dialect;
             this.tableName = tableName;
-            tableNameEncapsulated = dialect.Encapsulate(dialect.GetFullTableName(tableName));
 
-            foreach (DBDialect.ColumnDefinition column in dialect.GetSchema(
-                tableNameEncapsulated, dbNumber))
+            foreach (ColumnDefinition column in contextProvider.DbContext.GetDefinitions(objectName))
             {
                 PropertyDefinition def = new PropertyDefinition(column);
 
@@ -135,7 +125,7 @@ namespace PROTR.Core
             if (firstStringProperty == null)
             {
                 firstStringProperty = ListProperties.Find(prop => prop.BasicType == BasicType.Text
-                    && !prop.IsPrimaryKey && !prop.IsIdentity);
+                    && !prop.IsPrimaryKey);
             }
 
             names = Properties.Keys.ToArray();
@@ -187,91 +177,6 @@ namespace PROTR.Core
             }
         }
 
-        protected virtual string PrepareSelectQuery()
-        {
-            StringBuilder sql = new StringBuilder("select ");
-
-            sql.Append(dialect.SQLAllColumns(ListProperties));
-            sql.Append(" from " + tableNameEncapsulated);
-            sql.Append(" where " + dialect.SQLWherePrimaryKey(ListProperties));
-
-            return sql.ToString();
-        }
-
-        public string SelectQuery
-        {
-            get
-            {
-                return selectBuilder.Value;
-            }
-        }
-
-        protected virtual string PrepareInsertQuery()
-        {
-            StringBuilder sql = new StringBuilder("insert into " + tableNameEncapsulated);
-
-            sql.Append(" (" + dialect.SQLInsertProperties(ListProperties) + ")");
-            sql.Append(" values (" + dialect.SQLInsertValues(ListProperties) + ") ");
-
-            if (primaryKeyIsOneInt || primaryKeyIsOneLong)
-            {
-                if (dialect.Dialect == DBDialectEnum.PostgreSQL) //???
-                {
-                    sql.Append(" RETURNING lastval() as id");
-                }
-                else
-                {
-                    sql.Append(";" + dialect.GetIdentitySql);
-                }
-            }
-
-            return sql.ToString();
-        }
-
-        public string InsertQuery
-        {
-            get
-            {
-                return insertBuilder.Value;
-            }
-        }
-
-        protected virtual string PrepareUpdateQuery()
-        {
-            StringBuilder sql = new StringBuilder("update " + tableNameEncapsulated);
-
-            sql.Append(" set " + dialect.SQLUpdatePropertiesValues(ListProperties));
-            sql.Append(" where " + dialect.SQLWherePrimaryKey(ListProperties));
-
-            return sql.ToString();
-        }
-
-        public string UpdateQuery
-        {
-            get
-            {
-                return updateBuilder.Value;
-            }
-        }
-
-        protected virtual string PrepareDeleteQuery()
-        {
-            StringBuilder sql = new StringBuilder("delete");
-
-            sql.Append(" from " + tableNameEncapsulated);
-            sql.Append(" where " + dialect.SQLWherePrimaryKey(ListProperties));
-
-            return sql.ToString();
-        }
-
-        public string DeleteQuery
-        {
-            get
-            {
-                return deleteBuilder.Value;
-            }
-        }
-
         public DynamicParameters GetPrimaryKeyParameters(BusinessBase obj)
         {
             DynamicParameters dynParms = new DynamicParameters();
@@ -284,40 +189,7 @@ namespace PROTR.Core
             return dynParms;
         }
 
-        public DynamicParameters GetInsertParameters(BusinessBase obj)
-        {
-            DynamicParameters dynParms = new DynamicParameters();
-
-            for (int index = 0; index < names.Length; ++index)
-            {
-                PropertyDefinition prop = ListProperties[index];
-                if (prop.IsDBField && !prop.IsIdentity)
-                {
-                    dynParms.Add("@" + names[index], obj[index]);
-                }
-            }
-
-            return dynParms;
-        }
-
-        public DynamicParameters GetUpdateParameters(BusinessBase obj)
-        {
-            DynamicParameters dynParms = new DynamicParameters();
-
-            for (int index = 0; index < names.Length; ++index)
-            {
-                PropertyDefinition prop = ListProperties[index];
-
-                if (prop.IsDBField && !prop.IsReadOnly && !prop.IsComputed)
-                {
-                    dynParms.Add("@" + names[index], obj[index]);
-                }
-            }
-
-            return dynParms;
-        }
-
-        public virtual string GetListSQL(string listName, string parameter)
+        public virtual string GetListSQL(DbDialect dialect, string listName, string parameter)
         {
             return "Select " + dialect.Encapsulate(names[PrimaryKeys[0]]) + " As ID, "
                 + dialect.Encapsulate(firstStringProperty.FieldName) + " From " + tableNameEncapsulated
@@ -334,11 +206,11 @@ namespace PROTR.Core
             return new Dictionary<string, object>() { { "id", parameter } };
         }
 
-        public virtual ListTable GetList(string listName = "", string parameter = "")
+        public virtual ListTable GetList(ContextProvider contextProvider, string listName = "", string parameter = "")
         {
-            string sql = GetListSQL(listName, parameter);
+            string sql = GetListSQL(contextProvider.DbDialect, listName, parameter);
 
-            return new ListTable(listName, sql, GetParameter(parameter), DBNumber, AllListDescription);
+            return new ListTable(contextProvider, listName, sql, GetParameter(parameter), DBNumber, AllListDescription);
         }
     }
 }

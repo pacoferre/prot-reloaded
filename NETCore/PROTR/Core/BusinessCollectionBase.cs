@@ -27,7 +27,7 @@ namespace PROTR.Core
             string childObjectName, string sql = "", string childRelationFieldName = "", 
             string parentRelationFieldName = "", int dbNumber = 0)
         {
-            this.Parent = parent;
+            Parent = parent;
             this.childObjectName = childObjectName;
             if (parentRelationFieldName == "")
             {
@@ -52,8 +52,8 @@ namespace PROTR.Core
                 sql = "Select * From " + childObjectName
                     + " Where " + this.childRelationFieldName + " = @id";
 
-                PropertyDefinition firstStringField = 
-                    BusinessBaseProvider.Instance.GetDecorator(childObjectName, dbNumber).FirstStringProperty;
+                PropertyDefinition firstStringField =
+                    parent.BusinessProvider.GetDecorator(parent.ContextProvider, childObjectName, dbNumber).FirstStringProperty;
 
                 if (firstStringField != null)
                 {
@@ -64,9 +64,9 @@ namespace PROTR.Core
 
             this.dbNumber = dbNumber;
 
-            if (!BusinessBaseProvider.Instance.IsDecoratorCreated(childObjectName, dbNumber))
+            if (!parent.BusinessProvider.IsDecoratorCreated(parent.ContextProvider, childObjectName, dbNumber))
             {
-                BusinessBaseProvider.Instance.GetDecorator(childObjectName, dbNumber);
+                parent.BusinessProvider.GetDecorator(parent.ContextProvider, childObjectName, dbNumber);
             }
         }
 
@@ -146,7 +146,7 @@ namespace PROTR.Core
 
         public virtual BusinessBase CreateNewChild()
         {
-            return BusinessBaseProvider.Instance.CreateObject(childObjectName, dbNumber);
+            return Parent.BusinessProvider.CreateObject(Parent.ContextProvider, childObjectName, dbNumber);
         }
 
         public BusinessBase CreateNew()
@@ -183,7 +183,7 @@ namespace PROTR.Core
             }
         }
 
-        public int CuantosEnCollection
+        public int CountInCollection
         {
             get
             {
@@ -205,11 +205,11 @@ namespace PROTR.Core
                 {
                     if (SQLQuery.ToUpper().Contains("ORDER BY"))
                     {
-                        return DB.Instance.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM (" + SQLQuery.Substring(0, SQLQuery.ToUpper().LastIndexOf("ORDER BY")) + ") As D");
+                        return Parent.ContextProvider.DbContext.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM (" + SQLQuery.Substring(0, SQLQuery.ToUpper().LastIndexOf("ORDER BY")) + ") As D");
                     }
                     else
                     {
-                        return DB.Instance.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM (" + SQLQuery + ") As D");
+                        return Parent.ContextProvider.DbContext.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM (" + SQLQuery + ") As D");
                     }
                 }
             }
@@ -226,7 +226,7 @@ namespace PROTR.Core
                 if (sql != "" && !readed)
                 {
                     readed = true;
-                    DB.Instance.ReadBusinessCollection(this);
+                    Parent.ContextProvider.DbContext.ReadBusinessCollection(this);
 
                     afterReadFromDBPending = true;
                 }

@@ -12,15 +12,14 @@ namespace PROTR.Core.Security
     {
         internal static bool UseAppUserNoDB = false;
 
-        internal static string CurrentUserIDSessionKey = "USER_ID";
         public static byte[] SALT;
 
-        public static bool LoginWindowsWithoutDomain(HttpContext context)
+        public static bool LoginWindowsWithoutDomain(ContextProvider contextProvider)
         {
-            string login = GetLoginWithOutDomain(context);
-            int idAppUser = DB.Instance.QueryFirstOrDefault<int>(@"SELECT idAppUser FROM AppUser
+            string login = contextProvider.GetLoginWithOutDomain();
+            int idAppUser = contextProvider.DbContext.QueryFirstOrDefault<int>(@"SELECT idAppUser FROM AppUser
 WHERE (email = @email) AND (deactivated = 0)", new { email = login });
-            AppUser usu = (AppUser)BusinessBaseProvider.Instance.CreateObject("AppUser");
+            AppUser usu = (AppUser)contextProvider.BusinessProvider.CreateObject(contextProvider, "AppUser");
             bool valid = false;
 
             if (idAppUser > 0)
@@ -28,7 +27,7 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
                 valid = true;
 
                 usu.ReadFromDB(idAppUser);
-                SetAppUser(usu, context);
+                contextProvider.SetAppUser(usu);
 
                 usu.PostLogin(login, "", usu, valid);
             }
@@ -40,32 +39,18 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
             return valid;
         }
 
-        private static string GetLoginWithOutDomain(HttpContext context)
+        public static bool Login(string email, string password, ContextProvider contextProvider)
         {
-            string login = context.User.Identity.Name;
+            AppUser theUser = (AppUser)contextProvider.BusinessProvider.CreateObject(contextProvider, "AppUser");
 
-            if (login.Contains("\\"))
-            {
-                login = login.Split('\\')[1];
-            }
-            if (login.Contains("@"))
-            {
-                login = login.Split('@')[0];
-            }
-
-            return login;
+            return theUser.LoginInternal(email, password);
         }
 
-        public static bool Login(string email, string password, HttpContext context)
+        protected bool LoginInternal(string email, string password)
         {
-            AppUser theUser = (AppUser)BusinessBaseProvider.Instance.CreateObject("AppUser");
-
-            return theUser.LoginInternal(email, password, context);
-        }
-
-        protected bool LoginInternal(string email, string password, HttpContext context)
-        {
-            dynamic userData = DB.Instance.QueryFirstOrDefault("Select idAppUser, password From AppUser Where email = @Email", new { Email = email });
+            dynamic userData = contextProvider
+                .DbContext
+                .QueryFirstOrDefault<dynamic>("Select idAppUser, password From AppUser Where email = @Email", new { Email = email });
             AppUser usu = null;
             bool valid = false;
 
@@ -75,7 +60,7 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
 
                 if (enc == userData.password)
                 {
-                    usu = (AppUser)BusinessBaseProvider.Instance.CreateObject("AppUser");
+                    usu = (AppUser)businessProvider.CreateObject(contextProvider, "AppUser");
 
                     usu.ReadFromDB((int)userData.idAppUser);
                 }
@@ -85,7 +70,7 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
                 {
                     if (userData.password == password)
                     {
-                        usu = (AppUser)BusinessBaseProvider.Instance.CreateObject("AppUser");
+                        usu = (AppUser)businessProvider.CreateObject(contextProvider, "AppUser");
 
                         usu.ReadFromDB((int)userData.idAppUser);
 
@@ -107,7 +92,7 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
 
             if (usu != null)
             {
-                SetAppUser(usu, context);
+                contextProvider.SetAppUser(usu);
                 valid = true;
             }
 
@@ -172,55 +157,6 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
                 prf: KeyDerivationPrf.HMACSHA1,
                 iterationCount: 200,
                 numBytesRequested: 256 / 8));
-        }
-
-        public static bool UserIsAuthenticated(HttpContext req)
-        {
-            return IDAppUser(req) != null;
-        }
-
-        public static int? IDAppUser(HttpContext req)
-        {
-            return req.Session.GetInt32(CurrentUserIDSessionKey);
-        }
-
-        public static void SetAppUser(AppUser user, HttpContext context)
-        {
-            // New user logon.
-            context.Session.Clear();
-
-            context.Session.SetInt32(CurrentUserIDSessionKey, (int)user[0]);
-
-            BusinessBaseProvider.StoreObject(user, UseAppUserNoDB ? "AppUserNoDB" : "AppUser");
-        }
-
-        public static AppUser GetAppUserWithoutHttpContext()
-        {
-            return GetAppUser(BusinessBaseProvider.HttpContext);
-        }
-
-        private static object currentUserLock = new object();
-
-        public static AppUser GetAppUser(HttpContext context)
-        {
-            int idAppUser = context.Session.GetInt32(CurrentUserIDSessionKey).NoNullInt();
-
-            if (idAppUser > 0)
-            {
-                lock (currentUserLock)
-                {
-                    return (AppUser)BusinessBaseProvider.RetreiveObject(context,
-                        UseAppUserNoDB ? "AppUserNoDB" : "AppUser", idAppUser.ToString());
-                }
-            }
-
-            return null;
-        }
-
-        public static void StoreAppUser(AppUser user)
-        {
-            BusinessBaseProvider.StoreObject(user,
-                UseAppUserNoDB ? "AppUserNoDB" : "AppUser");
         }
     }
 }

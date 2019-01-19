@@ -19,19 +19,22 @@ namespace PROTR.Core.Lists
         private Lazy<List<ListItemRest>> generator;
         private object pending = true;
         private DateTime lastReaded = DateTime.Now;
+        private ContextProvider contextProvider;
 
-        public ListTable(string listName, byte[] data)
+        public ListTable(ContextProvider contextProvider, string listName, byte[] data)
         {
             ListName = listName;
+            this.contextProvider = contextProvider;
 
             Deserialize(data);
 
             CreateGenerator();
         }
 
-        public ListTable(string listName, string sql, dynamic parameters, int dbNumber, string allDescription)
+        public ListTable(ContextProvider contextProvider, string listName, string sql, dynamic parameters, int dbNumber, string allDescription)
         {
             ZeroItem = new object[] { "0", allDescription };
+            this.contextProvider = contextProvider;
 
             sqlList = sql;
             this.parameters = parameters;
@@ -81,7 +84,7 @@ namespace PROTR.Core.Lists
                 {
                     if ((bool)pending)
                     {
-                        IEnumerable<dynamic> dbItems = DB.InstanceNumber(dbNumber).Query(sqlList, parameters);
+                        IEnumerable<dynamic> dbItems = contextProvider.DbContext.ParametrizedQuery<dynamic>(sqlList, parameters);
 
                         Items.Clear();
 

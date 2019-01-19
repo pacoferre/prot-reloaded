@@ -92,7 +92,7 @@ namespace PROTR.Core
             {
                 try
                 {
-                    CurrentDB.ReadBusinessObject(this);
+                    contextProvider.DbContext.ReadBusinessObject(this);
 
                     IsNew = false;
                     IsModified = false;
@@ -143,7 +143,7 @@ namespace PROTR.Core
                             }
                         }
 
-                        CurrentDB.StoreBusinessObject(this);
+                        contextProvider.DbContext.StoreBusinessObject(this);
 
                         foreach (BusinessCollectionBase col in relatedCollections.Values)
                         {
@@ -157,7 +157,7 @@ namespace PROTR.Core
                         IsModified = false;
                         IsDeleting = false;
 
-                        BusinessBaseProvider.ListProvider.Invalidate(ObjectName);
+                        businessProvider.ListProvider.Invalidate(ObjectName);
 
                         AfterStoreToDB(wasNew, wasModified, wasDeleting);
                     }

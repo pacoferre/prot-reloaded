@@ -6,7 +6,7 @@ using System.Text;
 
 namespace PROTR.Core
 {
-    public enum DBDialectEnum
+    public enum DbDialectEnum
     {
         SQLServer,
         PostgreSQL,
@@ -14,262 +14,64 @@ namespace PROTR.Core
         MySQL,
     }
 
-    public class DBDialect
+    public class DbDialect
     {
-        private static readonly Lazy<DBDialect>[] _instance
-            = { new Lazy<DBDialect>(() => new DBDialect(DBDialectEnum.SQLServer)),
-                new Lazy<DBDialect>(() => new DBDialect(DBDialectEnum.PostgreSQL)),
-                new Lazy<DBDialect>(() => new DBDialect(DBDialectEnum.SQLite)),
-                new Lazy<DBDialect>(() => new DBDialect(DBDialectEnum.MySQL)) };
+        private static readonly Lazy<DbDialect>[] _instance
+            = { new Lazy<DbDialect>(() => new DbDialect(DbDialectEnum.SQLServer)),
+                new Lazy<DbDialect>(() => new DbDialect(DbDialectEnum.PostgreSQL)),
+                new Lazy<DbDialect>(() => new DbDialect(DbDialectEnum.SQLite)),
+                new Lazy<DbDialect>(() => new DbDialect(DbDialectEnum.MySQL)) };
 
-        public DBDialectEnum Dialect { get; }
+        public DbDialectEnum Dialect { get; }
         public string Encapsulation { get; }
-        public string GetIdentitySql { get; }
         public string GetListCountSql { get; }
         public string GetPagedListSql { get; }
         public string GetFromToListSql { get; }
-        public string GetSchemaSql { get; }
 
-        private static DBDialect Retreive(DBDialectEnum dialect)
+        private static DbDialect Retreive(DbDialectEnum dialect)
         {
-            return new DBDialect(dialect);
+            return new DbDialect(dialect);
         }
 
-        public class ColumnDefinition
-        {
-            public string ColumnName;
-            public string DBDataType;
-            public int MaxLength;
-            public bool IsNullable;
-            public bool IsIdentity;
-            public bool IsPrimaryKey;
-            public bool IsComputed;
-        }
-
-        private static Dictionary<string, Type> typesDict = new Dictionary<string, Type>() {
-            { "int", typeof(Int32) },
-            { "bit", typeof(bool) },
-            { "bigint", typeof(Int64) },
-            { "smallint", typeof(Int16) },
-            { "tinyint", typeof(Byte) },
-            { "real", typeof(Single) },
-            { "float", typeof(Double) },
-            { "nvarchar", typeof(string) },
-            { "varchar", typeof(string) },
-            { "date", typeof(DateTime) },
-            { "datetime", typeof(DateTime) },
-            { "ntext", typeof(string) },
-            { "text", typeof(string) },
-            { "nchar", typeof(string) },
-            { "char", typeof(string) },
-            { "money", typeof(Decimal) },
-            { "decimal", typeof(Decimal) },
-            { "numeric", typeof(Decimal) },
-            { "timestamp", typeof(Byte[]) },
-            { "binary", typeof(Byte[]) },
-            { "uniqueidentifier", typeof(Guid) },
-        };
-
-        private static Dictionary<Type, BasicType> basicTypesDict = new Dictionary<Type, BasicType>() {
-            { typeof(Int32), BasicType.Number },
-            { typeof(bool), BasicType.Bit },
-            { typeof(Int64), BasicType.Number },
-            { typeof(Int16), BasicType.Number },
-            { typeof(Byte), BasicType.Number },
-            { typeof(Single), BasicType.Number },
-            { typeof(Double), BasicType.Number },
-            { typeof(string), BasicType.Text },
-            { typeof(DateTime), BasicType.DateTime },
-            { typeof(Decimal), BasicType.Number },
-            { typeof(Byte[]), BasicType.Bynary },
-            { typeof(Guid), BasicType.GUID },
-        };
-
-        public static Type GetColumnType(string dbDataType)
-        {
-            return typesDict[dbDataType];
-
-            //if (typesDict.ContainsKey(dbDataType))
-            //{
-            //    return typesDict[dbDataType];
-            //}
-
-            //return typeof(int);
-        }
-
-        public static BasicType GetBasicType(Type type)
-        {
-            return basicTypesDict[type];
-        }
-
-        public string GetFullTableName(string tableName)
-        {
-            if (BusinessBaseProvider.TableSchemas.ContainsKey(tableName))
-            {
-                return BusinessBaseProvider.TableSchemas[tableName] + "." + tableName;
-            }
-
-            return tableName;
-        }
-
-        public IEnumerable<ColumnDefinition> GetSchema(string tableName, int dbNumber = 0)
-        {
-            string tableSchema = "";
-            
-            if (Dialect == DBDialectEnum.SQLServer)
-            {
-                tableSchema = "dbo";
-                tableName = tableName.Replace("[", "").Replace("]", "");
-            }
-
-            if (tableName.Contains('.'))
-            {
-                string[] parts = tableName.Split('.');
-
-                tableSchema = parts[0];
-                tableName = parts[1];
-            }
-
-            return DB.InstanceNumber(dbNumber).Query<ColumnDefinition>(GetSchemaSql, new { TableName = tableName, TableSchema = tableSchema });
-        }
-
-        public static Func<DBDialectEnum, string, IDbConnection> GetStaticConnection;
-
-        public IDbConnection GetConnection(string connectionString)
-        {
-            IDbConnection conn = GetStaticConnection.Invoke(Dialect, connectionString);
-
-//            switch (Dialect)
-//            {
-//                case DBDialectEnum.PostgreSQL:
-//                    conn = new Npgsql.NpgsqlConnection(connectionString);
-//                    break;
-//                case DBDialectEnum.SQLite:
-//                    throw new Exception("To come for .NET Core 1.0");
-////                    break;
-//                case DBDialectEnum.MySQL:
-//                    throw new Exception("To come for .NET Core 1.0");
-////                    break;
-//                default:
-//                    conn = new System.Data.SqlClient.SqlConnection(connectionString);
-//                    break;
-//            }
-
-            return conn;
-        }
-
-        private DBDialect(DBDialectEnum dialect)
+        private DbDialect(DbDialectEnum dialect)
         {
             switch (dialect)
             {
-                case DBDialectEnum.PostgreSQL:
-                    Dialect = DBDialectEnum.PostgreSQL;
+                case DbDialectEnum.PostgreSQL:
+                    Dialect = DbDialectEnum.PostgreSQL;
                     Encapsulation = "{0}";
-                    GetIdentitySql = "SELECT LASTVAL() AS id";
                     GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowsPerPage} OFFSET (({PageNumber}-1) * {RowsPerPage})";
                     GetFromToListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowCount} OFFSET ({FromRecord})";
                     break;
-                case DBDialectEnum.SQLite:
-                    Dialect = DBDialectEnum.SQLite;
+                case DbDialectEnum.SQLite:
+                    Dialect = DbDialectEnum.SQLite;
                     Encapsulation = "{0}";
-                    GetIdentitySql = "SELECT LAST_INSERT_ROWID() AS id";
                     GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowsPerPage} OFFSET (({PageNumber}-1) * {RowsPerPage})";
                     GetFromToListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {RowCount} OFFSET ({FromRecord})";
                     break;
-                case DBDialectEnum.MySQL:
-                    Dialect = DBDialectEnum.MySQL;
+                case DbDialectEnum.MySQL:
+                    Dialect = DbDialectEnum.MySQL;
                     Encapsulation = "`{0}`";
-                    GetIdentitySql = "SELECT LAST_INSERT_ID() AS id";
                     GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {Offset},{RowsPerPage}";
                     GetFromToListSql = "Select {SelectColumns} from {FromClause} {WhereClause} {GroupByClause} Order By {OrderBy} LIMIT {FromRecord},{RowCount}";
                     break;
                 default:
-                    Dialect = DBDialectEnum.SQLServer;
+                    Dialect = DbDialectEnum.SQLServer;
                     Encapsulation = "[{0}]";
-                    GetIdentitySql = "SELECT CAST(SCOPE_IDENTITY() AS BIGINT) AS [id]";
                     GetListCountSql = "SELECT COUNT(*) FROM (SELECT {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u";
                     GetPagedListSql = "SELECT {SelectNamedColumns} FROM (SELECT ROW_NUMBER() OVER(ORDER BY {OrderBy}) AS PagedNumber, {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u WHERE PagedNUMBER BETWEEN (({PageNumber}-1) * {RowsPerPage} + 1) AND ({PageNumber} * {RowsPerPage})";
                     GetFromToListSql = "SELECT {SelectNamedColumns} FROM (SELECT ROW_NUMBER() OVER(ORDER BY {OrderBy}) AS PagedNumber, {SelectColumns} FROM {FromClause} {WhereClause} {GroupByClause}) AS u WHERE PagedNUMBER BETWEEN ({FromRecord} + 1) AND ({FromRecord} + {RowCount})";
-                    GetSchemaSql = @"SELECT col.COLUMN_NAME AS ColumnName
-, col.DATA_TYPE AS DBDataType
-, col.CHARACTER_MAXIMUM_LENGTH AS MaxLength
-, CAST(CASE col.IS_NULLABLE
-WHEN 'NO' THEN 0
-ELSE 1
-END AS bit) AS IsNullable
-, COLUMNPROPERTY(OBJECT_ID('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']'), col.COLUMN_NAME, 'IsIdentity') AS IsIdentity
-, CAST(ISNULL(pk.is_primary_key, 0) AS bit) AS IsPrimaryKey
-, CAST((case when col.COLUMN_DEFAULT is NULL OR 
-COLUMNPROPERTY(OBJECT_ID('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']'), col.COLUMN_NAME, 'IsComputed') = 1 then 0 else 1 end) As bit) AS IsComputed
-FROM INFORMATION_SCHEMA.COLUMNS AS col
-LEFT JOIN(SELECT SCHEMA_NAME(o.schema_id)AS TABLE_SCHEMA
-, o.name AS TABLE_NAME
-, c.name AS COLUMN_NAME
-, i.is_primary_key
-FROM sys.indexes AS i JOIN sys.index_columns AS ic ON i.object_id = ic.object_id
-AND i.index_id = ic.index_id
-JOIN sys.objects AS o ON i.object_id = o.object_id
-LEFT JOIN sys.columns AS c ON ic.object_id = c.object_id
-AND c.column_id = ic.column_id
-WHERE i.is_primary_key = 1) AS pk ON col.TABLE_NAME = pk.TABLE_NAME
-AND col.TABLE_SCHEMA = pk.TABLE_SCHEMA
-AND col.COLUMN_NAME = pk.COLUMN_NAME
-WHERE col.TABLE_NAME = @TableName
-AND col.TABLE_SCHEMA = @TableSchema
-ORDER BY col.ORDINAL_POSITION";
                     break;
             }
         }
 
-        public static DBDialect Instance(DBDialectEnum dialect)
+        public static DbDialect Instance(DbDialectEnum dialect)
         {
             return _instance[(int)dialect].Value;
         }
-
-        //public string SQLListColumns(List<PropertyDefinition> properties)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-        //    string keyExpression = "";
-        //    var addedAny = false;
-
-        //    foreach (PropertyDefinition prop in properties)
-        //    {
-        //        if (prop.IsDBField)
-        //        {
-        //            if (prop.IsPrimaryKey)
-        //            {
-        //                if (keyExpression != "")
-        //                {
-        //                    keyExpression += ",";
-        //                }
-        //                if (prop.BasicType == BasicType.Number)
-        //                {
-        //                    //SQL Server.
-        //                    keyExpression += "LTRIM(STR(" + Encapsulate(prop.FieldName) + "))";
-        //                }
-        //                else
-        //                {
-        //                    keyExpression += Encapsulate(prop.FieldName);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                if (addedAny)
-        //                {
-        //                    sb.Append(",");
-        //                }
-        //                sb.Append(Encapsulate(prop.FieldName));
-
-        //                addedAny = true;
-        //            }
-        //        }
-        //    }
-
-        //    return keyExpression + " As " + Encapsulate("key") + ", " + sb.ToString();
-        //}
 
         public string SQLAllColumns(List<PropertyDefinition> properties)
         {
@@ -315,76 +117,9 @@ ORDER BY col.ORDINAL_POSITION";
             return sb.ToString();
         }
 
-        public string SQLInsertProperties(List<PropertyDefinition> properties)
-        {
-            StringBuilder sb = new StringBuilder();
-            var addedAny = false;
-
-            foreach (PropertyDefinition prop in properties)
-            {
-                if (prop.IsDBField && !prop.IsIdentity && !prop.IsComputed)
-                {
-                    if (addedAny)
-                    {
-                        sb.Append(", ");
-                    }
-                    sb.Append(Encapsulate(prop.FieldName));
-
-                    addedAny = true;
-                }
-            }
-
-            return sb.ToString();
-        }
-
-        public string SQLInsertValues(List<PropertyDefinition> properties)
-        {
-            StringBuilder sb = new StringBuilder();
-            var addedAny = false;
-
-            foreach (PropertyDefinition prop in properties)
-            {
-                if (prop.IsDBField && !prop.IsIdentity && !prop.IsComputed)
-                {
-                    if (addedAny)
-                    {
-                        sb.Append(", ");
-                    }
-                    sb.Append("@" + prop.FieldName);
-
-                    addedAny = true;
-                }
-            }
-
-            return sb.ToString();
-        }
-
-        public string SQLUpdatePropertiesValues(List<PropertyDefinition> properties)
-        {
-            StringBuilder sb = new StringBuilder();
-            var addedAny = false;
-
-            foreach (PropertyDefinition prop in properties)
-            {
-                if (prop.IsDBField && !prop.IsIdentity 
-                    && !prop.IsReadOnly && !prop.IsComputed)
-                {
-                    if (addedAny)
-                    {
-                        sb.Append(", ");
-                    }
-                    sb.Append(Encapsulate(prop.FieldName) + "=@" + prop.FieldName);
-
-                    addedAny = true;
-                }
-            }
-
-            return sb.ToString();
-        }
-
         public string Encapsulate(string databaseword)
         {
-            if (Dialect == DBDialectEnum.SQLServer && databaseword.Contains("."))
+            if (Dialect == DbDialectEnum.SQLServer && databaseword.Contains("."))
             {
                 string[] parts = databaseword.Split('.');
 

@@ -53,17 +53,17 @@ namespace PROTR.Core
                     {
                         string messageAction = IsDeleting ? "deleted" : (IsNew ? "created" : "saved");
 
-                        CurrentDB.BeginTransaction();
+                        contextProvider.DbContext.BeginTransaction();
 
                         StoreToDB();
 
                         model.normalMessage = Description + " " + messageAction + " successfully.";
 
-                        CurrentDB.CommitTransaction();
+                        contextProvider.DbContext.CommitTransaction();
                     }
                     catch (Exception exp)
                     {
-                        CurrentDB.RollBackTransaction();
+                        contextProvider.DbContext.RollbackTransaction();
 
                         model.ok = false;
                         model.errorMessage = LastErrorMessage == "" ? exp.Message : LastErrorMessage;
@@ -102,7 +102,7 @@ namespace PROTR.Core
             }
             ProcessCollectionsToClient(context, fromClient, model);
 
-            BusinessBaseProvider.StoreObject(this, fromClient.objectName);
+            businessProvider.StoreObject(this, fromClient.objectName);
 
             model.keyObject = Key;
             model.isNew = IsNew;

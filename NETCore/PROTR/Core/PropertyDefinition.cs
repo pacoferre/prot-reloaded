@@ -41,6 +41,17 @@ namespace PROTR.Core
         select
     }
 
+    public class ColumnDefinition
+    {
+        public string ColumnName;
+        public Type DataType;
+        public int MaxLength;
+        public bool IsNullable;
+        public bool IsPrimaryKey;
+        public bool IsComputed;
+    }
+
+
     public class PropertyDefinition
     {
         public static string EmptyErrorMessage = "{0} empty";
@@ -55,7 +66,6 @@ namespace PROTR.Core
 
         public bool IsNullable { get; } = false;
         public bool IsComputed { get; set; } = false;
-        public bool IsIdentity { get; } = false;
         public bool IsPrimaryKey { get; } = false;
         public bool IsReadOnly { get; set; } = false;
         public bool IsOnlyOnNew { get; set; } = false;
@@ -88,7 +98,7 @@ namespace PROTR.Core
         public object DefaultValue { get; set; } = null;
         public bool AlwaysFloatLabel { get; set; } = true;
 
-        public PropertyDefinition(DBDialect.ColumnDefinition colDef)
+        public PropertyDefinition(ColumnDefinition colDef)
         {
             IsDBField = true;
             IsNullable = colDef.IsNullable;
@@ -98,23 +108,18 @@ namespace PROTR.Core
             }
 
             IsComputed = colDef.IsComputed;
-            IsIdentity = colDef.IsIdentity;
             IsPrimaryKey = colDef.IsPrimaryKey;
             if (IsComputed)
             {
                 IsReadOnly = true;
-            }
-            if (IsComputed || IsIdentity)
-            {
                 NoChecking = true;
             }
-            DBDataType = colDef.DBDataType;
             FieldName = colDef.ColumnName;
-            DataType = DBDialect.GetColumnType(colDef.DBDataType);
-            BasicType = DBDialect.GetBasicType(DataType);
+            DataType = colDef.DataType;
+            BasicType = Lib.GetBasicType(DataType);
             MaxLength = colDef.MaxLength;
 
-            if (BasicType == BasicType.Text && MaxLength == 10000)
+            if (BasicType == BasicType.Text && MaxLength == int.MaxValue)
             {
                 BasicType = BasicType.TextLong;
             }
@@ -147,7 +152,7 @@ namespace PROTR.Core
             Label = label;
 
             DataType = dataType;
-            BasicType = DBDialect.GetBasicType(DataType);
+            BasicType = Lib.GetBasicType(DataType);
             if (BasicType == BasicType.Bit)
             {
                 inputType = PropertyInputType.checkbox;
@@ -288,7 +293,7 @@ namespace PROTR.Core
                 if (Required && value == "0" && !IsObjectView)
                 {
                     // First element
-                    ListTable dt = BusinessBaseProvider.ListProvider.GetList(ListObjectName, ListName);
+                    ListTable dt = obj.BusinessProvider.ListProvider.GetList(obj.ContextProvider, ListObjectName, ListName);
 
                     if (dt.ToClient.Count > 0)
                     {

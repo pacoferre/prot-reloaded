@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Demo.Library.Infrastructure.Data
+namespace Demo.Library.Business.Data
 {
     public class LibraryContextSeed
     {

@@ -7,9 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Demo.Library.Infrastructure.Data
+namespace Demo.Library.Business.Data
 {
-    public class LibraryContext : BaseContext<LibraryAppUserModel>
+    public class LibraryContext : BaseDbContext<LibraryAppUserModel>
     {
         public LibraryContext(DbContextOptions options) : base(options)
         {

@@ -5,7 +5,7 @@ namespace Demo.Library.Business.Authors
 {
     public class AuthorFilter : FilterBase
     {
-        public AuthorFilter(BusinessBaseDecorator decorator) : base(decorator, 0)
+        public AuthorFilter(ContextProvider contextProvider, BusinessBaseDecorator decorator) : base(contextProvider, decorator, 0)
         {
 
         }

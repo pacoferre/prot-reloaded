@@ -8,10 +8,15 @@ namespace PROTR.Core.Security
 {
     public class AppUserNoDBDecorator : PROTR.Core.Security.AppUserDecorator
     {
-        public override void SetProperties(string objectName, int dbNumber)
+        public AppUserNoDBDecorator(BusinessBaseProvider provider) : base(provider)
+        {
+
+        }
+
+        public override void SetProperties(ContextProvider contextProvider, string objectName, int dbNumber)
         {
             this.objectName = objectName;
-            this.tableName = BusinessBaseProvider.GetDBTableFor(objectName);
+            this.tableName = provider.GetDBTableFor(objectName);
 
             SetCustomProperties();
         }
@@ -72,9 +77,9 @@ namespace PROTR.Core.Security
         }
     }
 
-    public class AppUserNoDB: PROTR.Core.Security.AppUser
+    public class AppUserNoDB : PROTR.Core.Security.AppUser
     {
-        public AppUserNoDB() : base(true)
+        public AppUserNoDB(BusinessBaseProvider provider) : base(provider, true)
         {
         }
 
@@ -84,24 +89,24 @@ namespace PROTR.Core.Security
             //base.StoreToDB();
         }
 
-        public static void LoginWindows(HttpContext context, int idAppUser = 1)
+        public static void LoginWindows(ContextProvider contextProvider, int idAppUser = 1)
         {
             AppUser usu = null;
 
             UseAppUserNoDB = true;
 
-            usu = (AppUser)BusinessBaseProvider.Instance.CreateObject("AppUserNoDB");
+            usu = (AppUser)contextProvider.BusinessProvider.CreateObject(contextProvider, "AppUserNoDB");
 
             usu.SetNew();
 
             usu["idAppUser"] = idAppUser;
 
             usu["name"] = "User";
-            usu["surname"] = context.User.Identity.Name;
+            usu["surname"] = contextProvider.GetLogin();
 
             usu.IsNew = false;
 
-            SetAppUser(usu, context);
+            contextProvider.SetAppUser(usu);
         }
     }
 }

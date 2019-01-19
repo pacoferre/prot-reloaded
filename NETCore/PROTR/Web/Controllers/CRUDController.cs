@@ -16,17 +16,19 @@ namespace PROTR.Web.Controllers
     public class CRUDController : Controller
     {
         protected IMemoryCache memoryCache;
+        protected ContextProvider contextProvider;
 
-        public CRUDController(IMemoryCache memoryCache)
+        public CRUDController(IMemoryCache memoryCache, ContextProvider contextProvider)
         {
             this.memoryCache = memoryCache;
+            this.contextProvider = contextProvider;
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             base.OnActionExecuting(context);
 
-            if (!AppUser.UserIsAuthenticated(context.HttpContext))
+            if (!contextProvider.UserIsAuthenticated)
             {
                 context.Result = new JsonResult(ModelToClient.ErrorResponse("User not authenticated"));
             }
@@ -35,9 +37,9 @@ namespace PROTR.Web.Controllers
         [HttpGet]
         public Dictionary<string, PropertyDefinitionDto> Properties(string name)
         {
-            return BusinessBaseProvider
-                .Instance
-                .GetDecorator(name)
+            return contextProvider
+                .BusinessProvider
+                .GetDecorator(contextProvider, name)
                 .ListProperties
                 .ToDictionary(prop => prop.FieldName, prop => new PropertyDefinitionDto(prop));
         }
@@ -46,11 +48,15 @@ namespace PROTR.Web.Controllers
         public ListModelToClient List([FromBody]ListModelFromClient request)
         {
             ListModelToClient resp;
-            FilterBase filter = BusinessBaseProvider.Instance.GetFilter(HttpContext, request.objectName, request.filterName);
+            FilterBase filter = contextProvider
+                .BusinessProvider
+                .GetFilter(contextProvider, request.objectName, request.filterName);
 
             resp = filter.ProcessRequestAndCreateResponse(HttpContext, request);
 
-            BusinessBaseProvider.StoreFilter(HttpContext, filter, request.objectName, request.filterName);
+            contextProvider
+                .BusinessProvider
+                .StoreFilter(contextProvider, filter, request.objectName, request.filterName);
 
             return resp;
         }
@@ -58,7 +64,9 @@ namespace PROTR.Web.Controllers
         [HttpPost]
         public List<DataViewColumn> ListDefinition([FromBody]ListModelDefinitionRequest request)
         {
-            FilterBase filter = BusinessBaseProvider.Instance.GetFilter(HttpContext, request.objectName, request.filterName);
+            FilterBase filter = contextProvider
+                .BusinessProvider
+                .GetFilter(contextProvider, request.objectName, request.filterName);
 
             return new DataView(filter).Columns;
         }
@@ -67,8 +75,10 @@ namespace PROTR.Web.Controllers
         [HttpPost]
         public List<ListItemRest> SimpleList([FromBody]SimpleListRequest request)
         {
-            ListTable table = BusinessBaseProvider.ListProvider.GetList(request.objectName,
-                request.listName, request.parameter);
+            ListTable table = contextProvider
+                .BusinessProvider
+                .ListProvider.GetList(contextProvider, request.objectName,
+                    request.listName, request.parameter);
 
             return table.ToClient;
         }
@@ -97,7 +107,7 @@ namespace PROTR.Web.Controllers
                         fromClient.root.key = "0";
                     }
 
-                    return new JsonResult(BusinessBaseProvider.RetreiveObject(HttpContext, fromClient.objectName,
+                    return new JsonResult(contextProvider.BusinessProvider.RetreiveObject(contextProvider, fromClient.objectName,
                         fromClient.root.key).PerformActionAndCreateResponse(HttpContext, fromClient));
                 }
 

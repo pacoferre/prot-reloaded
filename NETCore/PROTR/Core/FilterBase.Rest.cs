@@ -35,7 +35,7 @@ namespace PROTR.Core
 
             resp.plural = this.Decorator.Plural;
             resp.filters = this.Filter;
-            resp.result = Dapper.SqlMapper.ToList(this.Get(request.sortIndex,
+            resp.result = Lib.ToList(this.Get(request.sortIndex,
                 (request.sortDir == "asc" ? SortDirection.Ascending : SortDirection.Descending),
                 request.pageNumber, request.rowsPerPage, ref rowCount));
             resp.fastsearch = this.FastSearch;

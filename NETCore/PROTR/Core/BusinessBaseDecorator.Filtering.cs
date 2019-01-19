@@ -8,9 +8,9 @@ namespace PROTR.Core
 {
     public partial class BusinessBaseDecorator
     {
-        public virtual FilterBase GetFilter(string filterName)
+        public virtual FilterBase GetFilter(ContextProvider contextProvider, string filterName)
         {
-            return new FilterBase(this, DBNumber);
+            return new FilterBase(contextProvider, this, DBNumber);
         }
     }
 }

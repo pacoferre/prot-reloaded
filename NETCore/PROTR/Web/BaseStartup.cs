@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,11 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using PROTR.Core;
 using PROTR.Core.Interfaces;
-using PROTR.Infrastructure.Logging;
+using PROTR.Core.Logging;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
 using System.Text;
 
 namespace PROTR.Web
@@ -28,7 +30,7 @@ namespace PROTR.Web
         public virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
             services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
 
             services.AddSession(o => {
@@ -47,8 +49,13 @@ namespace PROTR.Web
                 PROTR.Web.Helpers.CookiesHelper.CookieName = cookieName;
             });
 
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            var provider = CreateProvider();
+            provider.Configure(Configuration, ConnectionMultiplexer.Connect("localhost"));
+            provider.RegisterBusinessCreators();
 
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.TryAddSingleton(provider);
+            services.AddAutoMapper(provider.GetType().GetTypeInfo().Assembly, typeof(BusinessBase).GetTypeInfo().Assembly);
         }
 
         public virtual void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -86,20 +93,6 @@ namespace PROTR.Web
             }
 
             app.UseMvc();
-
-            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("localhost");
-
-            BusinessBaseProvider.Configure(
-                app.ApplicationServices.GetRequiredService<IHttpContextAccessor>(),
-                redis, CreateProvider(), Configuration);
-
-            DBDialect.GetStaticConnection =
-                new Func<DBDialectEnum, string, IDbConnection>(GetConnection);
-        }
-
-        public static IDbConnection GetConnection(DBDialectEnum Dialect, string connectionString)
-        {
-            return new System.Data.SqlClient.SqlConnection(connectionString);
         }
 
         protected virtual BusinessBaseProvider CreateProvider()

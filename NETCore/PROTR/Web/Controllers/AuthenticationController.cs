@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using PROTR.Core;
 using PROTR.Core.REST;
 using PROTR.Core.Security;
+using PROTR.Core.Security.EF;
 using PROTR.Web.Helpers;
 using System;
 using System.Collections.Generic;
@@ -12,10 +14,12 @@ namespace PROTR.Web.Controllers
     public class AuthenticationController : Controller
     {
         protected IMemoryCache memoryCache;
+        protected ContextProvider contextProvider;
 
-        public AuthenticationController(IMemoryCache memoryCache)
+        public AuthenticationController(IMemoryCache memoryCache, ContextProvider contextProvider)
         {
             this.memoryCache = memoryCache;
+            this.contextProvider = contextProvider;
         }
 
         public class LoginObject
@@ -25,13 +29,13 @@ namespace PROTR.Web.Controllers
         }
 
         [HttpPost]
-        public Core.Security.EF.AppUser Login([FromBody]LoginObject login)
+        public AppUserModel Login([FromBody]LoginObject login)
         {
             bool valid;
 
             HttpContext.Session.Clear();
 
-            valid = AppUser.Login(login.email, login.password, HttpContext);
+            valid = AppUser.Login(login.email, login.password, contextProvider);
 
             if (!valid)
             {
@@ -42,23 +46,23 @@ namespace PROTR.Web.Controllers
                 CookiesHelper.WriteCookie(HttpContext, CookiesHelper.LoginCookieName, login.email, 1);
             }
 
-            return AppUser.GetAppUser(HttpContext).MapToEF();
+            return contextProvider.Mapper.Map<AppUserModel>(contextProvider.GetAppUser());
         }
 
         [HttpGet]
-        public Core.Security.EF.AppUser CurrentUser()
+        public AppUserModel CurrentUser()
         {
-            if (!AppUser.UserIsAuthenticated(HttpContext))
+            if (!contextProvider.UserIsAuthenticated)
             {
                 return null;
             }
-            return AppUser.GetAppUser(this.HttpContext).MapToEF();
+            return contextProvider.Mapper.Map<AppUserModel>(contextProvider.GetAppUser());
         }
 
         [HttpGet]
         public bool Logout()
         {
-            if (AppUser.UserIsAuthenticated(HttpContext))
+            if (contextProvider.UserIsAuthenticated)
             {
                 HttpContext.Session.Clear();
             }

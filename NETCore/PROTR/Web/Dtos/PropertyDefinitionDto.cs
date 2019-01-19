@@ -8,7 +8,6 @@ namespace PROTR.Web.Dtos
     public class PropertyDefinitionDto
     {
         public PropertyInputType Type { get; set; }
-        public bool IsIdentity { get; set; } = false;
         public bool IsReadOnly { get; set; } = false;
         public bool IsOnlyOnNew { get; set; } = false;
         public string FieldName { get; } = "";
@@ -36,8 +35,7 @@ namespace PROTR.Web.Dtos
         public PropertyDefinitionDto(PropertyDefinition property)
         {
             Type = property.Type;
-            IsIdentity = property.IsIdentity;
-            IsReadOnly = property.IsReadOnly || property.IsIdentity;
+            IsReadOnly = property.IsReadOnly;
             IsOnlyOnNew = property.IsOnlyOnNew;
             FieldName = property.FieldName;
             Label = property.Label;

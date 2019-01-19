@@ -7,6 +7,11 @@ namespace Demo.Library.Business.Authors
 {
     public class AuthorDecorator : BusinessBaseDecorator
     {
+        public AuthorDecorator(BusinessBaseProvider provider) : base(provider)
+        {
+
+        }
+
         protected override void SetCustomProperties()
         {
             base.SetCustomProperties();
@@ -17,9 +22,9 @@ namespace Demo.Library.Business.Authors
             Properties["idAuthorNationality"].Type = PropertyInputType.select;
         }
 
-        public override FilterBase GetFilter(string filterName)
+        public override FilterBase GetFilter(ContextProvider contextProvider, string filterName)
         {
-            return new AuthorFilter(this);
+            return new AuthorFilter(contextProvider, this);
         }
     }
 }

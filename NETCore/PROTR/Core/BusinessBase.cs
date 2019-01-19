@@ -9,37 +9,36 @@ namespace PROTR.Core
 {
     public partial class BusinessBase
     {
-        private Lazy<DB> lazyDB;
-
         protected BusinessBaseDecorator decorator = null;
         protected DataItem dataItem = null;
+        protected BusinessBaseProvider businessProvider;
+        protected ContextProvider contextProvider;
 
-        public BusinessBase(bool noDB)
+        public Type ModelType { get; set; }
+
+        public BusinessBase(BusinessBaseProvider businessProvider, bool noDB)
         {
-            decorator = BusinessBaseProvider.Instance.GetDecorator(this.ToString().Split('.').Last(), 0);
+            this.businessProvider = businessProvider;
+            decorator = businessProvider.GetDecorator(null, this.ToString().Split('.').Last(), 0);
             dataItem = Decorator.New(this);
         }
 
-        public BusinessBase(string objectName = "", int dbNumber = 0)
+        public BusinessBase(ContextProvider contextProvider, string objectName = "", int dbNumber = 0)
         {
             if (objectName == "")
             {
                 objectName = this.ToString().Split('.').Last();
             }
 
-            decorator = BusinessBaseProvider.Instance.GetDecorator(objectName, dbNumber);
+            this.businessProvider = contextProvider.BusinessProvider;
+            this.contextProvider = contextProvider;
+            decorator = businessProvider.GetDecorator(contextProvider, objectName, dbNumber);
             dataItem = Decorator.New(this);
-
-            lazyDB = new Lazy<DB>(() => DB.InstanceNumber(dbNumber));
         }
 
-        public BusinessBaseDecorator Decorator
-        {
-            get
-            {
-                return decorator;
-            }
-        }
+        public BusinessBaseDecorator Decorator => decorator;
+        public BusinessBaseProvider BusinessProvider => businessProvider;
+        public ContextProvider ContextProvider => contextProvider;
 
         public virtual string ObjectName
         {
@@ -76,6 +75,16 @@ namespace PROTR.Core
             }
         }
 
+        public object[] Keys
+        {
+            get {
+                return Decorator
+                    .PrimaryKeys
+                    .Select(index => dataItem[index])
+                    .ToArray();
+            }
+        }
+
         public virtual object this[string property]
         {
             get
@@ -88,7 +97,7 @@ namespace PROTR.Core
             }
         }
 
-        public object this[int index]
+        public virtual object this[int index]
         {
             get
             {
@@ -100,14 +109,6 @@ namespace PROTR.Core
             }
         }
 
-        protected DB CurrentDB
-        {
-            get
-            {
-                return lazyDB.Value;
-            }
-        }
-
         private AppUser _currentUser = null;
         public AppUser CurrentUser
         {
@@ -115,7 +116,7 @@ namespace PROTR.Core
             {
                 if (_currentUser == null)
                 {
-                    _currentUser = AppUser.GetAppUserWithoutHttpContext();
+                    _currentUser = contextProvider.GetAppUser();
                 }
 
                 return _currentUser;

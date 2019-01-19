@@ -1,19 +1,17 @@
 ﻿using PROTR.Core.DataViews;
 using PROTR.Core.REST;
-using Dapper;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 
 namespace PROTR.Core
 {
     public partial class FilterBase : IDataViewSetter
     {
-        private Lazy<DB> lazyDB;
-
         public bool EmptyWhereReturnsEmpty { get; set; } = false;
         public string FastSearch { get; set; } = "";
         public bool FastSearchActivated { get; set; } = true;
@@ -21,20 +19,12 @@ namespace PROTR.Core
         public int topRecords { get; set; } = 100;
 
         public BusinessBaseDecorator Decorator { get; }
+        public ContextProvider ContextProvider { get; }
 
-        public FilterBase(BusinessBaseDecorator decorator, int dbNumber = 0)
+        public FilterBase(ContextProvider contextProvider, BusinessBaseDecorator decorator, int dbNumber = 0)
         {
+            ContextProvider = contextProvider;
             Decorator = decorator;
-
-            lazyDB = new Lazy<DB>(() => DB.InstanceNumber(dbNumber));
-        }
-
-        protected DB CurrentDB
-        {
-            get
-            {
-                return lazyDB.Value;
-            }
         }
 
         public void Clear()
@@ -129,8 +119,6 @@ namespace PROTR.Core
 
         public virtual void SetDataView(DataView dataView)
         {
-            dataView.CurrentDB = CurrentDB;
-
             dataView.Columns = new List<DataViewColumn>(2);
             dataView.Columns.Add(new DataViewColumn(Decorator.TableNameEncapsulated,
                 Decorator.ListProperties[0]));

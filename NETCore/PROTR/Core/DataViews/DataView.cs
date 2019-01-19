@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,8 @@ namespace PROTR.Core.DataViews
 {
     public interface IDataViewSetter
     {
+        ContextProvider ContextProvider { get; }
+
         void SetDataView(DataView dataView);
 
         string GetFinalSQLQuery(DataView dataView, string whereClause, object param, int order, SortDirection sortDirection,
@@ -25,8 +28,6 @@ namespace PROTR.Core.DataViews
         public string PreWhere { get; set; } = "";
         public string PostOrderBy { get; set; } = "";
 
-        private DB currentDB = null;
-
         public List<DataViewColumn> visibleColumns;
         private string selectNamedColumns = "";
         private string selectColumns = "";
@@ -40,14 +41,6 @@ namespace PROTR.Core.DataViews
             this.setter.SetDataView(this);
 
             InternalSet();
-        }
-
-        public DB CurrentDB
-        {
-            set
-            {
-                currentDB = value;
-            }
         }
 
         public List<DataViewColumn> VisibleColumns
@@ -98,10 +91,6 @@ namespace PROTR.Core.DataViews
                 }
             }
 
-            if (currentDB == null)
-            {
-                throw new Exception("CurrentDB must be set.");
-            }
             if (FromClause == null)
             {
                 throw new Exception("FromClause must be set.");
@@ -112,21 +101,22 @@ namespace PROTR.Core.DataViews
             }
 
             // {SelectColumns} {FromClause} {WhereClause} {OrderBy} {PageNumber} {RowsPerPage}
-            query = currentDB.Dialect.GetPagedListSql.Replace("{SelectColumns}", selectColumns)
+            query = setter.ContextProvider.DbDialect.GetPagedListSql
+                .Replace("{SelectColumns}", selectColumns)
                 .Replace("{SelectNamedColumns}", selectNamedColumns)
                 .Replace("{GroupByClause}", (GroupByClause == "" ? "" : "GROUP BY " + GroupByClause))
                 .Replace("{FromClause}", FromClause);
         }
 
-        public IEnumerable<dynamic> Get(string whereClause, object param, int order, SortDirection sortDirection,
+        public IEnumerable<dynamic> Get(string whereClause, DynamicParameters param, int order, SortDirection sortDirection,
             int pageNumber, int rowsPerPage, ref int rowCount)
         {
             string sql = setter.GetFinalSQLQuery(this, whereClause, param, order, sortDirection, pageNumber, rowsPerPage);
             string sqlCount = setter.GetCountSQLQuery(this, whereClause, param);
 
-            rowCount = currentDB.Query<int>(sql, param).FirstOrDefault();
+            rowCount = setter.ContextProvider.DbContext.ParametrizedQuery<int>(sql, param).FirstOrDefault();
 
-            return currentDB.Query(sql, param);
+            return setter.ContextProvider.DbContext.ParametrizedQuery<dynamic>(sql, param);
         }
     }
 }

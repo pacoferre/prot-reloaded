@@ -8,6 +8,10 @@ namespace PROTR.Core.Security
 {
     public class AppUserDecorator : BusinessBaseDecorator
     {
+        public AppUserDecorator(BusinessBaseProvider provider) : base(provider)
+        {
+        }
+
         protected override void SetCustomProperties()
         {
             Properties["password"].NoChecking = true;
@@ -21,22 +25,107 @@ namespace PROTR.Core.Security
         }
     }
 
-    public partial class AppUser : BusinessBaseModel<AppUserModel>
+    public partial class AppUser : BusinessBase
     {
-        public AppUser()
+        public AppUser(ContextProvider contextProvider) : base(contextProvider)
         {
-
+            ModelType = typeof(AppUserModel);
         }
 
-        public AppUser(bool noDB) : base(noDB)
+        public AppUser(BusinessBaseProvider provider, bool noDB) : base(provider, noDB)
         {
+            ModelType = typeof(AppUserModel);
+        }
+
+        public int IdAppUser
+        {
+            get
+            {
+                return this[0].NoNullInt();
+            }
+            set
+            {
+                this[0] = value;
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return this[1].ToString();
+            }
+            set
+            {
+                this[1] = value;
+            }
+        }
+
+        public string Surname
+        {
+            get
+            {
+                return this[2].ToString();
+            }
+            set
+            {
+                this[2] = value;
+            }
+        }
+
+        public bool Su
+        {
+            get
+            {
+                return this[3].NoNullBool();
+            }
+            set
+            {
+                this[3] = value;
+            }
+        }
+
+        public string Email
+        {
+            get
+            {
+                return this[4].ToString();
+            }
+            set
+            {
+                this[4] = value;
+            }
+        }
+
+        public string Password
+        {
+            get
+            {
+                return this[5].ToString();
+            }
+            set
+            {
+                this[5] = value;
+            }
+        }
+
+        public bool Deactivated
+        {
+            get
+            {
+                return this[4].NoNullBool();
+            }
+            set
+            {
+                this[4] = value;
+            }
         }
 
         public override string Description
         {
             get
             {
-                return D.Name + " " + D.Surname;
+                return Name + " " + Surname;
             }
         }
 
@@ -95,7 +184,7 @@ namespace PROTR.Core.Security
             {
                 string enc = PasswordDerivedString(this["idAppUser"].NoNullString(), newPassword.ToString());
 
-                CurrentDB.Execute("update AppUser set password = @password Where idAppUser = @id", new { password = enc, id = this["idAppUser"].NoNullString() });
+                contextProvider.DbContext.Execute("update AppUser set password = @password Where idAppUser = @id", new { password = enc, id = this["idAppUser"].NoNullString() });
 
                 newPassword = null;
 

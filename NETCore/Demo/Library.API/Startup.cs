@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Demo.Library.Business;
-using Demo.Library.Infrastructure.Data;
+using Demo.Library.Business.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +32,9 @@ namespace Library.API
                 c.UseSqlServer(Configuration.GetSection("Data").GetSection("Instance_0")["ConnectionString"]);
             });
             base.ConfigureServices(services);
+
+            services.AddScoped(typeof(ContextProvider), typeof(LibraryContextProvider));
+            services.AddSingleton(DbDialect.Instance(DbDialectEnum.SQLServer));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,7 +45,7 @@ namespace Library.API
 
         protected override BusinessBaseProvider CreateProvider()
         {
-            return new LibraryProvider();
+            return new LibraryBusinessProvider();
         }
     }
 }
