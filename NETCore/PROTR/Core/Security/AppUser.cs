@@ -14,14 +14,16 @@ namespace PROTR.Core.Security
 
         protected override void SetCustomProperties()
         {
-            Properties["password"].NoChecking = true;
+            Properties["Password"].NoChecking = true;
 
             Singular = "User";
             Plural = "Users";
 
-            Properties["email"].IsOnlyOnNew = true;
-            Properties["email"].Type = PropertyInputType.email;
-            Properties["password"].Type = PropertyInputType.password;
+            Properties["Email"].IsOnlyOnNew = true;
+            Properties["Email"].Type = PropertyInputType.email;
+            Properties["Password"].Type = PropertyInputType.password;
+
+            Properties.Add("CheckPassword", new PropertyDefinition("CheckPassword", "Check", typeof(string)));
         }
     }
 
@@ -65,7 +67,7 @@ namespace PROTR.Core.Security
         {
             get
             {
-                return this[2].ToString();
+                return this[2].NoNullString();
             }
             set
             {
@@ -113,11 +115,22 @@ namespace PROTR.Core.Security
         {
             get
             {
-                return this[4].NoNullBool();
+                return this[6].NoNullBool();
             }
             set
             {
-                this[4] = value;
+                this[6] = value;
+            }
+        }
+        public string CheckPassword
+        {
+            get
+            {
+                return this["CheckPassword"].ToString();
+            }
+            set
+            {
+                this["CheckPassword"] = value;
             }
         }
 
@@ -178,17 +191,19 @@ namespace PROTR.Core.Security
             }
         }
 
-        protected override void AfterStoreToDB(bool wasNew, bool wasModified, bool wasDeleting)
+        protected override async Task AfterStoreToDB(bool wasNew, bool wasModified, bool wasDeleting)
         {
             if (newPassword != null)
             {
                 string enc = PasswordDerivedString(this["idAppUser"].NoNullString(), newPassword.ToString());
 
-                contextProvider.DbContext.Execute("update AppUser set password = @password Where idAppUser = @id", new { password = enc, id = this["idAppUser"].NoNullString() });
+                await contextProvider.DbContext
+                    .ExecuteAsync("update AppUser set password = @password Where idAppUser = @id",
+                        new { password = enc, id = this["idAppUser"].NoNullString() });
 
                 newPassword = null;
 
-                ReadFromDB();
+                await ReadFromDB();
             }
         }
 

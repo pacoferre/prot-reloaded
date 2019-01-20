@@ -83,6 +83,22 @@ namespace PROTR.Core.REST
 
             return model;
         }
+
+        public void Sanitize()
+        {
+            if (data != null)
+            {
+                data = data.ToDictionary(_ => _.Key.ToCamelCase(), _ => _.Value);
+            }
+
+            if (collections != null)
+            {
+                foreach (var col in collections)
+                {
+                    col.Value.ForEach(model => model.Sanitize());
+                }
+            }
+        }
     }
 
     public class BusinessObjectPermission

@@ -8,6 +8,7 @@ using PROTR.Web.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PROTR.Web.Controllers
 {
@@ -29,13 +30,13 @@ namespace PROTR.Web.Controllers
         }
 
         [HttpPost]
-        public AppUserModel Login([FromBody]LoginObject login)
+        public async Task<AppUserModel> Login([FromBody]LoginObject login)
         {
             bool valid;
 
             HttpContext.Session.Clear();
 
-            valid = AppUser.Login(login.email, login.password, contextProvider);
+            valid = await AppUser.Login(contextProvider, login.email, login.password);
 
             if (!valid)
             {
@@ -46,17 +47,17 @@ namespace PROTR.Web.Controllers
                 CookiesHelper.WriteCookie(HttpContext, CookiesHelper.LoginCookieName, login.email, 1);
             }
 
-            return contextProvider.Mapper.Map<AppUserModel>(contextProvider.GetAppUser());
+            return (AppUserModel)(await contextProvider.GetAppUser()).ToModelObject;
         }
 
         [HttpGet]
-        public AppUserModel CurrentUser()
+        public async Task<AppUserModel> CurrentUser()
         {
             if (!contextProvider.UserIsAuthenticated)
             {
                 return null;
             }
-            return contextProvider.Mapper.Map<AppUserModel>(contextProvider.GetAppUser());
+            return (AppUserModel)(await contextProvider.GetAppUser()).ToModelObject;
         }
 
         [HttpGet]

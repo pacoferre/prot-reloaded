@@ -9,10 +9,9 @@ namespace PROTR.Core
 {
     public partial class FilterBase
     {
-        public virtual ListModelToClient ProcessRequestAndCreateResponse(HttpContext context, ListModelFromClient request)
+        public virtual async Task<ListModelToClient> ProcessRequestAndCreateResponse(HttpContext context, ListModelFromClient request)
         {
             ListModelToClient resp = new ListModelToClient();
-            int rowCount = 0;
 
             this.FastSearchActivated = request.dofastsearch;
             this.FastSearch = request.fastsearch;
@@ -35,16 +34,17 @@ namespace PROTR.Core
 
             resp.plural = this.Decorator.Plural;
             resp.filters = this.Filter;
-            resp.result = Lib.ToList(this.Get(request.sortIndex,
+            var items = await this.Get(request.sortIndex,
                 (request.sortDir == "asc" ? SortDirection.Ascending : SortDirection.Descending),
-                request.pageNumber, request.rowsPerPage, ref rowCount));
+                request.pageNumber, request.rowsPerPage);
+            resp.result = Lib.ToList(items.Item1);
             resp.fastsearch = this.FastSearch;
             resp.sortIndex = request.sortIndex;
             resp.sortDir = request.sortDir;
             resp.topRecords = this.topRecords;
             resp.pageNumber = request.pageNumber;
             resp.rowsPerPage = request.rowsPerPage;
-            resp.rowCount = rowCount;
+            resp.rowCount = items.Item2;
 
             this.SetExtraToClientResponse(resp);
 

@@ -98,8 +98,8 @@ namespace PROTR.Core
         public static Tuple<string, DynamicParameters> emptyWhere 
             = new Tuple<string, DynamicParameters>("1 = 0", null);
 
-        public virtual IEnumerable<dynamic> Get(int order, SortDirection sortDirection,
-            int pageNumber, int rowsPerPage, ref int rowCount)
+        public virtual async Task<(IEnumerable<dynamic>, int)> Get(int order, SortDirection sortDirection,
+            int pageNumber, int rowsPerPage)
         {
             DataView dataView = new DataView(this);
             Tuple<string, DynamicParameters> where = Where(dataView);
@@ -109,7 +109,7 @@ namespace PROTR.Core
                 where = emptyWhere;
             }
 
-            return dataView.Get(where.Item1, where.Item2, order, sortDirection, pageNumber, rowsPerPage, ref rowCount);
+            return await dataView.Get(where.Item1, where.Item2, order, sortDirection, pageNumber, rowsPerPage);
         }
 
         public DataView GetEmpty()

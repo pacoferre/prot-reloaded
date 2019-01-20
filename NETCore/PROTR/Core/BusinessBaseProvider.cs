@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using System.Text;
 using StackExchange.Redis;
 using PROTR.Core.Lists;
+using System.Threading.Tasks;
 
 namespace PROTR.Core
 {
@@ -62,9 +63,8 @@ namespace PROTR.Core
         public virtual BusinessBase CreateObject(ContextProvider contextProvider, string objectName, int dbNumber = 0)
         {
             BusinessBase obj;
-            Func<ContextProvider, BusinessBase> creator;
 
-            if (creators.TryGetValue(objectName, out creator))
+            if (creators.TryGetValue(objectName, out Func<ContextProvider, BusinessBase> creator))
             {
                 obj = creator.Invoke(contextProvider);
 
@@ -118,16 +118,16 @@ namespace PROTR.Core
             return decorator;
         }
 
-        public FilterBase GetFilter(ContextProvider contextProvider, string objectName, string filterName = "")
+        public async Task<FilterBase> GetFilter(ContextProvider contextProvider, string objectName, string filterName = "")
         {
-            AppUser user = contextProvider.GetAppUser();
+            AppUser user = await contextProvider.GetAppUser();
             string filterKey = FilterKey(user, objectName, filterName);
-            object objTemp;
             byte[] data;
 
-            FilterBase filter = GetDecorator(contextProvider, objectName, 0).GetFilter(contextProvider, filterName);
+            FilterBase filter = GetDecorator(contextProvider, objectName, 0)
+                .GetFilter(contextProvider, filterName);
 
-            data = GetData(filterKey);
+            data = await GetData(filterKey);
 
             if (data != null)
             {
@@ -144,11 +144,11 @@ namespace PROTR.Core
             return filter;
         }
 
-        public void StoreFilter(ContextProvider contextProvider, FilterBase filter, string objectName, string filterName)
+        public async Task StoreFilter(ContextProvider contextProvider, FilterBase filter, string objectName, string filterName)
         {
-            AppUser user = contextProvider.GetAppUser();
+            AppUser user = await contextProvider.GetAppUser();
             string filterKey = FilterKey(user, objectName, filterName);
-            StoreData(filterKey, filter.Serialize());
+            await StoreData(filterKey, filter.Serialize());
         }
 
         private string FilterKey(AppUser user, string objectName, string filterName)
@@ -161,83 +161,89 @@ namespace PROTR.Core
             return "O_" + objectName + "_" + dbNumber + "_" + key;
         }
 
-        public void StoreObject(BusinessBase obj, string objectName)
+        public async Task StoreObject(BusinessBase obj, string objectName)
         {
             string objectKey = ObjectKey(objectName, obj.Decorator.DBNumber, obj.Key);
 
-            StoreData(objectKey, obj.Serialize());
+            await StoreData(objectKey, obj.Serialize());
         }
 
-        public void StoreData(string key, byte[] data)
+        public async Task StoreData(string key, byte[] data)
         {
-            TheCache.GetDatabase().StringSetAsync(key, data, TimeSpan.FromMinutes(30), When.Always, CommandFlags.FireAndForget);
+            await TheCache.GetDatabase().StringSetAsync(key, data, TimeSpan.FromMinutes(30), When.Always, CommandFlags.FireAndForget);
         }
 
-        public bool ExistsData(string key)
+        public async Task<bool> ExistsData(string key)
         {
-            return TheCache.GetDatabase().KeyExists(key);
+            return await TheCache.GetDatabase().KeyExistsAsync(key);
         }
 
-        public byte[] GetData(string key)
+        public async Task<byte[]> GetData(string key)
         {
-            return TheCache.GetDatabase().StringGet(key);
+            return await TheCache.GetDatabase().StringGetAsync(key);
         }
 
-        public void RemoveData(string key)
+        public async Task RemoveData(string key)
         {
-            TheCache.GetDatabase().KeyDeleteAsync(key, CommandFlags.FireAndForget);
+            await TheCache.GetDatabase().KeyDeleteAsync(key, CommandFlags.FireAndForget);
         }
 
-        public BusinessBase RetreiveObject(ContextProvider contextProvider, string objectName, string key)
+        public async Task<BusinessBase> RetreiveObject(ContextProvider contextProvider, string objectName, string key)
         {
-            return RetreiveObject(contextProvider, objectName, 0, key);
+            return await RetreiveObject(contextProvider, objectName, 0, key);
         }
 
-        public BusinessBase RetreiveObject(ContextProvider contextProvider, string objectName, int dbNumber, string key)
+        public async Task<BusinessBase> RetreiveObject(ContextProvider contextProvider, string objectName, int dbNumber, string key)
         {
             string objectKey = ObjectKey(objectName, dbNumber, key);
-            BusinessBase objResp = contextProvider.BusinessItems.GetOrAdd(objectKey, (theKey) =>
-                {
-                    byte[] data;
-                    bool readFromDB = true;
-                    BusinessBase obj = CreateObject(contextProvider, objectName, dbNumber);
-
-                    data = GetData(objectKey);
-
-                    if (data != null)
-                    {
-                        try
-                        {
-                            obj.Deserialize(data);
-                            readFromDB = false;
-                        }
-                        catch
-                        {
-                            // Sometimes Redis returns bad data.
-                        }
-                    }
-                    if (readFromDB)
-                    {
-                        if (key != "0" && key[0] != '-')
-                        {
-                            obj.ReadFromDB(key);
-                        }
-                        else
-                        {
-                            if (!obj.IsNew)
-                            {
-                                obj.SetNew();
-                                objectKey = obj.Key;
-                            }
-                        }
-
-                        StoreObject(obj, objectName);
-                    }
-
-                    return obj;
-                });
+            BusinessBase objResp = await Task.Run(() =>
+            {
+                return contextProvider.BusinessItems.GetOrAdd(objectKey, (theKey) =>
+                    Get(contextProvider, objectName, dbNumber, key, objectKey).Result);
+            });
 
             return objResp;
+        }
+
+        private async Task<BusinessBase> Get(ContextProvider contextProvider, string objectName, int dbNumber, string key, string objectKey)
+        {
+            byte[] data;
+            bool readFromDB = true;
+            BusinessBase obj = CreateObject(contextProvider, objectName, dbNumber);
+
+            data = await GetData(objectKey);
+
+            if (data != null)
+            {
+                try
+                {
+                    obj.Deserialize(data);
+                    readFromDB = false;
+                }
+                catch
+                {
+                    // Sometimes Redis returns bad data.
+                }
+            }
+            if (readFromDB)
+            {
+                if (key != "0" && key[0] != '-')
+                {
+                    await obj.ReadFromDB(key);
+                }
+                else
+                {
+                    if (!obj.IsNew)
+                    {
+                        await obj.SetNew();
+                        objectKey = obj.Key;
+                    }
+                }
+
+                await StoreObject(obj, objectName);
+            }
+
+            return obj;
         }
     }
 }

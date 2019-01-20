@@ -31,10 +31,14 @@ namespace Library.API
             {
                 c.UseSqlServer(Configuration.GetSection("Data").GetSection("Instance_0")["ConnectionString"]);
             });
-            base.ConfigureServices(services);
 
+            provider = new LibraryBusinessProvider();
+
+            services.AddSingleton((LibraryBusinessProvider)provider);
             services.AddScoped(typeof(ContextProvider), typeof(LibraryContextProvider));
             services.AddSingleton(DbDialect.Instance(DbDialectEnum.SQLServer));
+
+            base.ConfigureServices(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,10 +46,5 @@ namespace Library.API
         //{
         //    base.Configure(app, env);
         //}
-
-        protected override BusinessBaseProvider CreateProvider()
-        {
-            return new LibraryBusinessProvider();
-        }
     }
 }

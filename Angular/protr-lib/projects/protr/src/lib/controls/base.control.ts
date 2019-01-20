@@ -18,9 +18,7 @@ export class BaseControl implements OnInit, OnDestroy {
         if (d != null) {
           this.fieldNames = [];
           this.prepare(d);
-          if (this.fieldNames.length > 0) {
-            this.protrEditorService.registerFieldNamesOnInit(this.fieldNames);
-          }
+          this.protrEditorService.registerFieldNamesOnInit(this.fieldNames);
         }
       });
 

@@ -84,7 +84,8 @@ namespace PROTR.Core.Lists
                 {
                     if ((bool)pending)
                     {
-                        IEnumerable<dynamic> dbItems = contextProvider.DbContext.ParametrizedQuery<dynamic>(sqlList, parameters);
+                        IEnumerable<dynamic> dbItems = contextProvider.DbContext
+                            .ParametrizedQueryAsync<dynamic>(sqlList, parameters).Result;
 
                         Items.Clear();
 

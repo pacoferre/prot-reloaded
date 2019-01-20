@@ -9,33 +9,31 @@ namespace PROTR.Core.Lists
 {
     public class ListProvider
     {
-        private ConcurrentDictionary<Tuple<string, string, string>, Lazy<ListTable>>
-            listProviders = new ConcurrentDictionary<Tuple<string, string, string>, Lazy<ListTable>>();
-        private ContextProvider contextProvider;
+        private ConcurrentDictionary<Tuple<string, string, string>, Lazy<Task<ListTable>>>
+            listProviders = new ConcurrentDictionary<Tuple<string, string, string>, Lazy<Task<ListTable>>>();
 
-        public ListTable GetList(ContextProvider contextProvider, string objectName, string listName = "", string parameter = "")
+        public async Task<ListTable> GetList(ContextProvider contextProvider, string objectName, string listName = "", string parameter = "")
         {
             if (listName == "")
             {
                 listName = objectName;
             }
-            this.contextProvider = contextProvider;
 
-            Lazy<ListTable> lazy = listProviders.GetOrAdd(
+            Lazy<Task<ListTable>> lazy = listProviders.GetOrAdd(
                 new Tuple<string, string, string>(objectName, listName, parameter),
-                new Lazy<ListTable>(
-                    () => GetListInternal(contextProvider, objectName, listName, parameter),
+                new Lazy<Task<ListTable>>(
+                    async () => await GetListInternal(contextProvider, objectName, listName, parameter),
                     LazyThreadSafetyMode.ExecutionAndPublication
                 ));
 
-            return lazy.Value;
+            return await lazy.Value;
         }
 
-        public void Invalidate(string objectName)
+        public async Task Invalidate(ContextProvider contextProvider, string objectName)
         {
-            if (contextProvider.BusinessProvider.ExistsData(Key(objectName, "", "")))
+            if (await contextProvider.BusinessProvider.ExistsData(Key(objectName, "", "")))
             {
-                GetListInternal(contextProvider, objectName, "", "").Invalidate();
+                (await GetListInternal(contextProvider, objectName, "", "")).Invalidate();
             }
 
             foreach(var kp in listProviders)
@@ -44,7 +42,7 @@ namespace PROTR.Core.Lists
                 {
                     if (kp.Value.IsValueCreated)
                     {
-                        kp.Value.Value.Invalidate();
+                        (await kp.Value.Value).Invalidate();
                     }
                 }
             }
@@ -55,11 +53,11 @@ namespace PROTR.Core.Lists
             return "list_" + objectName + "_" + listName + "_" + parameter;
         }
 
-        private ListTable GetListInternal(ContextProvider contextProvider, string objectName, string listName, string parameter)
+        private async Task<ListTable> GetListInternal(ContextProvider contextProvider, string objectName, string listName, string parameter)
         {
             string key = Key(objectName, listName, parameter);
             ListTable list;
-            byte[] listData = contextProvider.BusinessProvider.GetData(key);
+            byte[] listData = await contextProvider.BusinessProvider.GetData(key);
 
             if (listData == null)
             {
@@ -67,7 +65,7 @@ namespace PROTR.Core.Lists
 
                 list = def.GetList(contextProvider, listName, parameter);
 
-                contextProvider.BusinessProvider.StoreData(key, list.Serialize());
+                await contextProvider.BusinessProvider.StoreData(key, list.Serialize());
             }
             else
             {

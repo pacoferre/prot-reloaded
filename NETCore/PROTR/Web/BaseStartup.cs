@@ -20,6 +20,8 @@ namespace PROTR.Web
 {
     public class BaseStartup
     {
+        protected BusinessBaseProvider provider;
+
         public BaseStartup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -49,12 +51,10 @@ namespace PROTR.Web
                 PROTR.Web.Helpers.CookiesHelper.CookieName = cookieName;
             });
 
-            var provider = CreateProvider();
             provider.Configure(Configuration, ConnectionMultiplexer.Connect("localhost"));
             provider.RegisterBusinessCreators();
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.TryAddSingleton(provider);
             services.AddAutoMapper(provider.GetType().GetTypeInfo().Assembly, typeof(BusinessBase).GetTypeInfo().Assembly);
         }
 
@@ -93,11 +93,6 @@ namespace PROTR.Web
             }
 
             app.UseMvc();
-        }
-
-        protected virtual BusinessBaseProvider CreateProvider()
-        {
-            throw new Exception("Provider must be set.");
         }
     }
 }

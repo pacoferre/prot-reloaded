@@ -90,11 +90,11 @@ namespace PROTR.Core
             }
         }
 
-        public void EnsureList()
+        public async Task EnsureList()
         {
             if (!readed)
             {
-                ReadFromDBInternal();
+                await ReadFromDBInternal();
             }
         }
 
@@ -183,53 +183,45 @@ namespace PROTR.Core
             }
         }
 
-        public int CountInCollection
+        public async Task<int> CountInCollection()
         {
-            get
-            {
-                EnsureList();
+            await EnsureList();
 
-                return this.Count;
-            }
+            return this.Count;
         }
 
-        public int CountNoRead
+        public async Task<int> CountNoRead()
         {
-            get
+            if (readed)
             {
-                if (readed)
+                return this.Count;
+            }
+            else
+            {
+                if (SQLQuery.ToUpper().Contains("ORDER BY"))
                 {
-                    return this.Count;
+                    return await Parent.ContextProvider.DbContext
+                        .QueryFirstOrDefaultAsync<int>("SELECT COUNT(*) FROM ("
+                            + SQLQuery.Substring(0, SQLQuery.ToUpper().LastIndexOf("ORDER BY")) + ") As D");
                 }
                 else
                 {
-                    if (SQLQuery.ToUpper().Contains("ORDER BY"))
-                    {
-                        return Parent.ContextProvider.DbContext.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM (" + SQLQuery.Substring(0, SQLQuery.ToUpper().LastIndexOf("ORDER BY")) + ") As D");
-                    }
-                    else
-                    {
-                        return Parent.ContextProvider.DbContext.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM (" + SQLQuery + ") As D");
-                    }
+                    return await Parent.ContextProvider.DbContext
+                        .QueryFirstOrDefaultAsync<int>("SELECT COUNT(*) FROM (" + SQLQuery + ") As D");
                 }
             }
         }
 
-        private object lockReadFromDBInternal = new object();
-
-        private void ReadFromDBInternal()
+        private async Task ReadFromDBInternal()
         {
             bool afterReadFromDBPending = false;
 
-            lock (lockReadFromDBInternal)
+            if (sql != "" && !readed)
             {
-                if (sql != "" && !readed)
-                {
-                    readed = true;
-                    Parent.ContextProvider.DbContext.ReadBusinessCollection(this);
+                readed = true;
+                await Parent.ContextProvider.DbContext.ReadBusinessCollection(this);
 
-                    afterReadFromDBPending = true;
-                }
+                afterReadFromDBPending = true;
             }
 
             if (afterReadFromDBPending)
@@ -389,13 +381,13 @@ namespace PROTR.Core
             }
         }
 
-        public virtual void StoreToDB()
+        public virtual async Task StoreToDB()
         {
             if (!readed && !Parent.IsDeleting)
             {
                 return;
             }
-            EnsureList();
+            await EnsureList();
             foreach (BusinessBase b in this)
             {
                 if (parentRelationFieldName != "")
@@ -406,14 +398,14 @@ namespace PROTR.Core
                     }
                     else
                     {
-                        if (Parent.Decorator.primaryKeyIsOneInt)
+                        if (Parent.Decorator.PrimaryKeyIsOneInt)
                         {
                             if ((int)b[childRelationFieldName] != (int)Parent[parentRelationFieldName])
                             {
                                 b[childRelationFieldName] = Parent[parentRelationFieldName];
                             }
                         }
-                        else if (Parent.Decorator.primaryKeyIsOneLong)
+                        else if (Parent.Decorator.PrimaryKeyIsOneLong)
                         {
                             if ((long)b[childRelationFieldName] != (long)Parent[parentRelationFieldName])
                             {
@@ -429,7 +421,7 @@ namespace PROTR.Core
                         }
                     }
                 }
-                b.StoreToDB();
+                await b.StoreToDB();
             }
             readed = false;
             // For health (N2M and others).
@@ -442,9 +434,9 @@ namespace PROTR.Core
         /// <summary>
         /// Elimina los registros nuevos de la colección y marca para eliminar los que existen.
         /// </summary>
-		public virtual void SetForDeletion()
+		public virtual async Task SetForDeletion()
         {
-            EnsureList();
+            await EnsureList();
             DeleteNewObjects();
             foreach (BusinessBase b in this)
             {
@@ -474,22 +466,22 @@ namespace PROTR.Core
             Parent.ClientRefreshPending = true;
         }
 
-        public virtual void SetNew(bool preserve = false, bool withoutCollections = false)
+        public virtual async Task SetNew(bool preserve = false, bool withoutCollections = false)
         {
-            EnsureList();
+            await EnsureList();
             foreach (BusinessBase b in this)
             {
                 if (b.IsDeleting && !b.IsNew)
                 {
                     b.IsDeleting = false;
                 }
-                b.SetNew(preserve, withoutCollections);
+                await b.SetNew(preserve, withoutCollections);
             }
         }
 
-        public virtual void CopyTo(BusinessCollectionBase colTarget)
+        public virtual async Task CopyTo(BusinessCollectionBase colTarget)
         {
-            EnsureList();
+            await EnsureList();
             foreach (BusinessBase objOrigen in this)
             {
                 bool isNew = false;
@@ -527,22 +519,22 @@ namespace PROTR.Core
 
         public virtual void AddActiveObject()
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             if (!this.Contains(this.ActiveObject))
             {
                 if (!CanAddActiveObject)
                 {
                     throw new System.Exception("Object cannot be added.");
                 }
-                this.Add(this.ActiveObject);
+                Add(ActiveObject);
 
                 Changed();
             }
         }
 
-        public virtual void InsertarActiveObject(int index)
+        public virtual void InsertActiveObject(int index)
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             if (!this.Contains(this.ActiveObject))
             {
                 if (!CanAddActiveObject)
@@ -561,7 +553,7 @@ namespace PROTR.Core
             {
                 if (readed)
                 {
-                    EnsureList();
+                    EnsureList().RunSynchronously();
                     if (ActiveObject.Decorator.PrimaryKeys.Count != 1)
                     {
                         foreach (BusinessBase b in this)
@@ -578,22 +570,22 @@ namespace PROTR.Core
             }
         }
 
-        public void SetActiveObject(int Position)
+        public async Task SetActiveObject(int Position)
         {
-            EnsureList();
+            await EnsureList();
             ActiveObject = this[Position];
         }
 
-        public void SetActiveObject(string Key)
+        public async Task SetActiveObject(string Key)
         {
-            SetActiveObject(Key, "");
+            await SetActiveObject(Key, "");
         }
 
-        public int ActiveObjectPosition(string filterName)
+        public async Task<int> ActiveObjectPosition(string filterName)
         {
             int indice = -1;
 
-            EnsureList();
+            await EnsureList();
             if (filterName == "")
             {
                 indice = this.IndexOf(ActiveObject);
@@ -616,9 +608,9 @@ namespace PROTR.Core
             return indice;
         }
 
-        public void SetActiveObject(string Key, string filterName)
+        public async Task SetActiveObject(string Key, string filterName)
         {
-            EnsureList();
+            await EnsureList();
             foreach (BusinessBase b in Filter(filterName))
             {
                 if (b.Key == Key)
@@ -657,12 +649,12 @@ namespace PROTR.Core
             {
                 if (active == null)
                 {
-                    EnsureList();
+                    EnsureList().RunSynchronously();
                 }
 
                 if (active == null)  // Multitasking issue...
                 {
-                    ReadFromDBInternal();
+                    ReadFromDBInternal().RunSynchronously();
                 }
 
                 return active;
@@ -677,14 +669,14 @@ namespace PROTR.Core
                     {
                         if (active[childRelationFieldName] == null)
                         {
-                            if (Parent.Decorator.primaryKeyIsOneInt)
+                            if (Parent.Decorator.PrimaryKeyIsOneInt)
                             {
                                 if (Parent[parentRelationFieldName].NoNullInt() > 0)
                                 {
                                     active[childRelationFieldName] = Parent[parentRelationFieldName];
                                 }
                             }
-                            else if (Parent.Decorator.primaryKeyIsOneLong)
+                            else if (Parent.Decorator.PrimaryKeyIsOneLong)
                             {
                                 if (Parent[parentRelationFieldName].NoNullLong() > 0)
                                 {
@@ -701,14 +693,14 @@ namespace PROTR.Core
                         }
                         else
                         {
-                            if (Parent.Decorator.primaryKeyIsOneInt)
+                            if (Parent.Decorator.PrimaryKeyIsOneInt)
                             {
                                 if (active[childRelationFieldName].NoNullInt() != Parent[parentRelationFieldName].NoNullInt())
                                 {
                                     active[childRelationFieldName] = Parent[parentRelationFieldName];
                                 }
                             }
-                            else if (Parent.Decorator.primaryKeyIsOneLong)
+                            else if (Parent.Decorator.PrimaryKeyIsOneLong)
                             {
                                 if (active[childRelationFieldName].NoNullLong() != Parent[parentRelationFieldName].NoNullLong())
                                 {
@@ -744,7 +736,7 @@ namespace PROTR.Core
         {
             get
             {
-                EnsureList();
+                EnsureList().RunSynchronously();
 
                 if (key == "0") // Carefully...
                 {
@@ -825,19 +817,19 @@ namespace PROTR.Core
             {
                 return -1;
             }
-            EnsureList();
+            EnsureList().RunSynchronously();
             return (list.IndexOf(item));
         }
 
         public void Insert(int index, BusinessBase item)
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             list.Insert(index, item);
         }
 
         public void RemoveAt(int index)
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             list.RemoveAt(index);
             Changed();
         }
@@ -846,19 +838,19 @@ namespace PROTR.Core
         {
             get
             {
-                EnsureList();
+                EnsureList().RunSynchronously();
                 return ((BusinessBase)list[index]);
             }
             set
             {
-                EnsureList();
+                EnsureList().RunSynchronously();
                 list[index] = value;
             }
         }
 
         public void Add(BusinessBase item)
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             list.Add(item);
         }
 
@@ -869,7 +861,7 @@ namespace PROTR.Core
 
         public bool Contains(BusinessBase item)
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             return list.Contains(item);
         }
 
@@ -880,7 +872,7 @@ namespace PROTR.Core
 
         public void CopyTo(BusinessBase[] array, int arrayIndex)
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             list.CopyTo(array, arrayIndex);
         }
 
@@ -888,7 +880,7 @@ namespace PROTR.Core
         {
             get
             {
-                EnsureList();
+                EnsureList().RunSynchronously();
                 return list.Count;
             }
         }
@@ -904,7 +896,7 @@ namespace PROTR.Core
         public bool Remove(BusinessBase item)
         {
             bool removed = false;
-            EnsureList();
+            EnsureList().RunSynchronously();
 
             removed = list.Remove(item);
 
@@ -915,55 +907,14 @@ namespace PROTR.Core
 
         public IEnumerator<BusinessBase> GetEnumerator()
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             return list.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            EnsureList();
+            EnsureList().RunSynchronously();
             return list.GetEnumerator();
-        }
-
-        public virtual bool AddSimple(int[] ids, string fieldIDName, bool append = false)
-        {
-            bool chengesMade = false;
-            int pos = 0;
-
-            foreach (int id in ids)
-            {
-                bool found = false;
-
-                foreach (BusinessBase b in this)
-                {
-                    if ((int)b[fieldIDName] == id)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    this.CreateNew();
-
-                    this.ActiveObject[fieldIDName] = id;
-
-                    if (append)
-                    {
-                        this.AddActiveObject();
-                    }
-                    else
-                    {
-                        this.InsertarActiveObject(pos);
-                        pos++;
-                    }
-
-                    chengesMade = true;
-                }
-            }
-
-            return chengesMade;
         }
 
         public void MoveObject(bool up, string key)
@@ -1049,7 +1000,6 @@ namespace PROTR.Core
 
     public class BusinessCollectionFiltered : IEnumerable, ICollection
     {
-        int count = 0;
         BusinessCollectionFilteredEnumerator filtered;
 
         public BusinessCollectionFiltered(BusinessCollectionBase col, string filterName)
@@ -1058,7 +1008,7 @@ namespace PROTR.Core
 
             while (filtered.MoveNext())
             {
-                count++;
+                Count++;
             }
             filtered.Reset();
         }
@@ -1076,13 +1026,7 @@ namespace PROTR.Core
         {
         }
 
-        public int Count
-        {
-            get
-            {
-                return count;
-            }
-        }
+        public int Count { get; } = 0;
 
         public bool IsSynchronized
         {
@@ -1101,7 +1045,7 @@ namespace PROTR.Core
     {
         BusinessBase actual;
         BusinessCollectionBase _col;
-        string _filterName;
+        readonly string _filterName;
 
         int pos;
 

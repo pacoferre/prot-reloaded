@@ -21,7 +21,7 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="returnIdentity">Retrieve identity.</param>
         /// <param name="propertyKey">The name of the identity property.</param>
         /// <returns>The Id of the inserted row or null.</returns>
-        public static Task<decimal?> InsertAsync<TEntity>(this DbSet<TEntity> dbSet, object entity, bool returnIdentity = true, string propertyKey = "Id")
+        public static Task<object> InsertAsync<TEntity>(this DbSet<TEntity> dbSet, object entity, bool returnIdentity = true, string propertyKey = "Id")
             where TEntity : class, new() =>
             (dbSet ?? throw new ArgumentNullException(nameof(dbSet)))
                 .GetDbContext().InsertAsync<TEntity>(entity, returnIdentity, propertyKey);
@@ -34,8 +34,8 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="entity">The entity instance.</param>
         /// <param name="returnIdentity">Retrieve identity.</param>
         /// <param name="propertyKey">The name of the identity property.</param>
-        /// <returns>The Id of the inserted row or null.</returns>
-        public static async Task<decimal?> InsertAsync<TEntity>(this DbContext dbContext, object entity, bool returnIdentity = true, string propertyKey = "Id")
+        /// <returns>The Id of the inserted row or null or 1 (sucess on returnIdentity = false).</returns>
+        public static async Task<object> InsertAsync<TEntity>(this DbContext dbContext, object entity, bool returnIdentity = true, string propertyKey = "Id")
             where TEntity : class, new()
         {
             if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
@@ -43,17 +43,27 @@ namespace PROTR.Core.Data.Dapper.Extensions
             var (sql, sqlParams) = await Task.Run(() =>
                 dbContext.CompileInsertOper<TEntity>(entity)).ConfigureAwait(false);
             var (con, trans, timeout) = dbContext.GetDatabaseConfig();
-            var result = await con.ExecuteScalarAsync<object>(sql, sqlParams, transaction: trans, commandTimeout: timeout).ConfigureAwait(false);
 
-            if (returnIdentity && result != null)
+            object result;
+
+            if (returnIdentity)
             {
-                var propInfo = entity.GetType().GetProperty(propertyKey);
+                result = await con.ExecuteScalarAsync<object>(sql, sqlParams, transaction: trans, commandTimeout: timeout);
+                if (result != null)
+                {
+                    var propInfo = entity.GetType().GetProperty(propertyKey);
 
-                if (propInfo != null && propInfo.CanWrite)
-                    propInfo.SetValue(entity, Convert.ChangeType(result, propInfo.PropertyType));
+                    if (propInfo != null && propInfo.CanWrite)
+                        propInfo.SetValue(entity, Convert.ChangeType(result, propInfo.PropertyType));
+                }
+            }
+            else
+            {
+                result = await con.ExecuteAsync(sql, sqlParams, transaction: trans, commandTimeout: timeout);
             }
 
-            return (decimal?)((result == null) ? result : Convert.ChangeType(result, typeof(decimal)));
+
+            return result;
         }
 
         /// <summary>
@@ -187,10 +197,10 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="dbSet">The <see cref="DbSet{T}"/>.</param>
         /// <param name="predicate">The predicate expression for the condition in WHERE clause.</param>
         /// <returns>The number of rows affected.</returns>
-        public static Task<int> DeleteAsync<TEntity>(this DbSet<TEntity> dbSet, Expression<Func<TEntity, bool>> predicate = null)
+        public static Task<int> DeleteAsync<TEntity>(this DbSet<TEntity> dbSet, object entity, Expression<Func<TEntity, bool>> predicate = null)
             where TEntity : class, new() =>
             (dbSet ?? throw new ArgumentNullException(nameof(dbSet)))
-                 .GetDbContext().DeleteAsync(predicate);
+                 .GetDbContext().DeleteAsync(entity, predicate);
 
         /// <summary>
         ///  Asynchronously deletes entities that match the given predicate.
@@ -199,13 +209,13 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="dbContext">The <see cref="DbContext"/>.</param>
         /// <param name="predicate">The predicate expression for the condition in WHERE clause.</param>
         /// <returns>The number of rows affected.</returns>
-        public static async Task<int> DeleteAsync<TEntity>(this DbContext dbContext, Expression<Func<TEntity, bool>> predicate = null)
+        public static async Task<int> DeleteAsync<TEntity>(this DbContext dbContext, object entity, Expression<Func<TEntity, bool>> predicate = null)
             where TEntity : class, new()
         {
             if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
             var (sql, sqlParams) = await Task.Run(() =>
             {
-                var (sb, parameters) = dbContext.CompileDeleteOper<TEntity>();
+                var (sb, parameters) = dbContext.CompileDeleteOper<TEntity>(entity);
 
                 if (predicate != null)
                 {
@@ -419,6 +429,13 @@ namespace PROTR.Core.Data.Dapper.Extensions
             }
 
             return result;
+        }
+
+        private static async Task<IEnumerable<TResult>> QueryAsync<TResult>(DbContext dbContext, string sql, object param)
+        {
+            var (con, trans, timeout) = dbContext.GetDatabaseConfig();
+
+            return await con.QueryAsync<TResult>(sql, param, transaction: trans, commandTimeout: timeout).ConfigureAwait(false);
         }
     }
 }

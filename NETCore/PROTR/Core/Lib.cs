@@ -343,6 +343,23 @@ namespace PROTR.Core
             return m;
         }
 
+        public static string ToCamelCase(this string str)
+        {
+            if (!string.IsNullOrEmpty(str) && str.Length > 1)
+            {
+                return Char.ToLowerInvariant(str[0]) + str.Substring(1);
+            }
+            return str;
+        }
+        public static string ToTitleCase(this string str)
+        {
+            if (!string.IsNullOrEmpty(str) && str.Length > 1)
+            {
+                return Char.ToUpperInvariant(str[0]) + str.Substring(1);
+            }
+            return str;
+        }
+
         private static Dictionary<Type, BasicType> basicTypesDict = new Dictionary<Type, BasicType>() {
             { typeof(Int32), BasicType.Number },
             { typeof(bool), BasicType.Bit },

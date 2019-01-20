@@ -7,7 +7,7 @@ namespace PROTR.Core
 {
     public partial class BusinessBase
     {
-        public virtual void SetNew(bool preserve = false, bool withoutCollections = false)
+        public virtual async Task SetNew(bool preserve = false, bool withoutCollections = false)
         {
             if (!preserve)
             {
@@ -19,13 +19,13 @@ namespace PROTR.Core
             {
                 foreach (BusinessCollectionBase col in relatedCollections.Values)
                 {
-                    col.SetNew(preserve, withoutCollections);
+                    await col.SetNew(preserve, withoutCollections);
                 }
             }
             PostSetNew();
         }
 
-        public virtual bool ReadFromDB(string key)
+        public virtual async Task<bool> ReadFromDB(string key)
         {
             if (key.StartsWith("-"))
             {
@@ -42,49 +42,49 @@ namespace PROTR.Core
 
             foreach (int index in Decorator.PrimaryKeys)
             {
-                Decorator.ListProperties[index].SetValue(this, keys[index]);
+                await Decorator.ListProperties[index].SetValue(this, keys[index]);
             }
 
-            return ReadFromDB();
+            return await ReadFromDB();
         }
 
-        public virtual bool ReadFromDB(int key)
+        public virtual async Task<bool> ReadFromDB(int key)
         {
-            if (!Decorator.primaryKeyIsOneInt)
+            if (!Decorator.PrimaryKeyIsOneInt)
             {
                 throw new Exception("Primary key is not int.");
             }
 
             this[Decorator.PrimaryKeys[0]] = key;
 
-            return ReadFromDB();
+            return await ReadFromDB();
         }
 
-        public virtual bool ReadFromDB(long key)
+        public virtual async Task<bool> ReadFromDB(long key)
         {
-            if (!Decorator.primaryKeyIsOneLong)
+            if (!Decorator.PrimaryKeyIsOneLong)
             {
                 throw new Exception("Primary key is not long.");
             }
 
             this[Decorator.PrimaryKeys[0]] = key;
 
-            return ReadFromDB();
+            return await ReadFromDB();
         }
 
-        public virtual bool ReadFromDB(Guid key)
+        public virtual async Task<bool> ReadFromDB(Guid key)
         {
-            if (!Decorator.primaryKeyIsOneGuid)
+            if (!Decorator.PrimaryKeyIsOneGuid)
             {
                 throw new Exception("Primary key is not guid.");
             }
 
             this[Decorator.PrimaryKeys[0]] = key;
 
-            return ReadFromDB();
+            return await ReadFromDB();
         }
 
-        public virtual bool ReadFromDB()
+        public virtual async Task<bool> ReadFromDB()
         {
             bool readed = true;
 
@@ -92,7 +92,7 @@ namespace PROTR.Core
             {
                 try
                 {
-                    contextProvider.DbContext.ReadBusinessObject(this);
+                    await contextProvider.DbContext.ReadBusinessObject(this);
 
                     IsNew = false;
                     IsModified = false;
@@ -100,7 +100,7 @@ namespace PROTR.Core
 
                     AfterReadFromDB();
                 }
-                catch
+                catch(Exception exp)
                 {
                     readed = false;
                 }
@@ -117,7 +117,7 @@ namespace PROTR.Core
             }
         }
 
-        public virtual void StoreToDB()
+        public virtual async Task StoreToDB()
         {
             LastErrorMessage = "";
             LastErrorProperty = "";
@@ -138,18 +138,18 @@ namespace PROTR.Core
                         {
                             foreach (BusinessCollectionBase col in relatedCollections.Values)
                             {
-                                col.SetForDeletion();
-                                col.StoreToDB();
+                                await col.SetForDeletion();
+                                await col.StoreToDB();
                             }
                         }
 
-                        contextProvider.DbContext.StoreBusinessObject(this);
+                        await contextProvider.DbContext.StoreBusinessObject(this);
 
                         foreach (BusinessCollectionBase col in relatedCollections.Values)
                         {
                             if (col.MustSave)
                             {
-                                col.StoreToDB();
+                                await col.StoreToDB();
                             }
                         }
 
@@ -157,9 +157,9 @@ namespace PROTR.Core
                         IsModified = false;
                         IsDeleting = false;
 
-                        businessProvider.ListProvider.Invalidate(ObjectName);
+                        await businessProvider.ListProvider.Invalidate(contextProvider, ObjectName);
 
-                        AfterStoreToDB(wasNew, wasModified, wasDeleting);
+                        await AfterStoreToDB(wasNew, wasModified, wasDeleting);
                     }
                 }
                 else
@@ -174,8 +174,9 @@ namespace PROTR.Core
             return true;
         }
 
-        protected virtual void AfterStoreToDB(bool wasNew, bool wasModified, bool wasDeleting)
+        protected virtual Task AfterStoreToDB(bool wasNew, bool wasModified, bool wasDeleting)
         {
+            return Task.CompletedTask;
         }
 
         public virtual void SetPropertiesFrom(BusinessBase source)

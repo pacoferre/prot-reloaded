@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using PROTR.Web.Dtos;
 using System.Linq;
 using PROTR.Core.DataViews;
+using System.Threading.Tasks;
 
 namespace PROTR.Web.Controllers
 {
@@ -41,20 +42,20 @@ namespace PROTR.Web.Controllers
                 .BusinessProvider
                 .GetDecorator(contextProvider, name)
                 .ListProperties
-                .ToDictionary(prop => prop.FieldName, prop => new PropertyDefinitionDto(prop));
+                .ToDictionary(prop => prop.FieldName.ToCamelCase(), prop => new PropertyDefinitionDto(prop));
         }
 
         [HttpPost]
-        public ListModelToClient List([FromBody]ListModelFromClient request)
+        public async Task<ListModelToClient> List([FromBody]ListModelFromClient request)
         {
             ListModelToClient resp;
-            FilterBase filter = contextProvider
+            FilterBase filter = await contextProvider
                 .BusinessProvider
                 .GetFilter(contextProvider, request.objectName, request.filterName);
 
-            resp = filter.ProcessRequestAndCreateResponse(HttpContext, request);
+            resp = await filter.ProcessRequestAndCreateResponse(HttpContext, request);
 
-            contextProvider
+            await contextProvider
                 .BusinessProvider
                 .StoreFilter(contextProvider, filter, request.objectName, request.filterName);
 
@@ -62,9 +63,9 @@ namespace PROTR.Web.Controllers
         }
 
         [HttpPost]
-        public List<DataViewColumn> ListDefinition([FromBody]ListModelDefinitionRequest request)
+        public async Task<List<DataViewColumn>> ListDefinition([FromBody]ListModelDefinitionRequest request)
         {
-            FilterBase filter = contextProvider
+            FilterBase filter = await contextProvider
                 .BusinessProvider
                 .GetFilter(contextProvider, request.objectName, request.filterName);
 
@@ -73,9 +74,9 @@ namespace PROTR.Web.Controllers
 
 
         [HttpPost]
-        public List<ListItemRest> SimpleList([FromBody]SimpleListRequest request)
+        public async Task<List<ListItemRest>> SimpleList([FromBody]SimpleListRequest request)
         {
-            ListTable table = contextProvider
+            ListTable table = await contextProvider
                 .BusinessProvider
                 .ListProvider.GetList(contextProvider, request.objectName,
                     request.listName, request.parameter);
@@ -84,17 +85,20 @@ namespace PROTR.Web.Controllers
         }
 
         [HttpPost]
-        public JsonResult Post([FromBody]ModelFromClient fromClient)
+        public async Task<JsonResult> Post([FromBody]ModelFromClient fromClient)
         {
+            fromClient.Sanitize();
+
             try
             {
                 if (fromClient.action == "init")
                 {
-                    ModelToClient toClient = new ModelToClient();
-
-                    toClient.formToken = Guid.NewGuid().ToString();
-                    toClient.sequence = 1;
-                    toClient.action = "init";
+                    ModelToClient toClient = new ModelToClient
+                    {
+                        formToken = Guid.NewGuid().ToString(),
+                        sequence = 1,
+                        action = "init"
+                    };
 
                     return new JsonResult(toClient);
                 }
@@ -107,8 +111,8 @@ namespace PROTR.Web.Controllers
                         fromClient.root.key = "0";
                     }
 
-                    return new JsonResult(contextProvider.BusinessProvider.RetreiveObject(contextProvider, fromClient.objectName,
-                        fromClient.root.key).PerformActionAndCreateResponse(HttpContext, fromClient));
+                    return new JsonResult(await (await contextProvider.BusinessProvider.RetreiveObject(contextProvider, fromClient.objectName,
+                        fromClient.root.key)).PerformActionAndCreateResponse(HttpContext, fromClient));
                 }
 
                 return new JsonResult(ModelToClient.ErrorResponse("Action " + fromClient.action + " not supported."));

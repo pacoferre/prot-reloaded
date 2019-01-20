@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
+using PROTR.Core.Security.EF;
 
 namespace PROTR.Core.Security
 {
@@ -14,11 +16,11 @@ namespace PROTR.Core.Security
 
         public static byte[] SALT;
 
-        public static bool LoginWindowsWithoutDomain(ContextProvider contextProvider)
+        public static async Task<bool> LoginWindowsWithoutDomain(ContextProvider contextProvider)
         {
             string login = contextProvider.GetLoginWithOutDomain();
-            int idAppUser = contextProvider.DbContext.QueryFirstOrDefault<int>(@"SELECT idAppUser FROM AppUser
-WHERE (email = @email) AND (deactivated = 0)", new { email = login });
+            int idAppUser = (await contextProvider
+                .QueryUser(_ => _.Email == login && !_.Deactivated))?.IdAppUser ?? 0;
             AppUser usu = (AppUser)contextProvider.BusinessProvider.CreateObject(contextProvider, "AppUser");
             bool valid = false;
 
@@ -26,57 +28,55 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
             {
                 valid = true;
 
-                usu.ReadFromDB(idAppUser);
-                contextProvider.SetAppUser(usu);
+                await usu.ReadFromDB(idAppUser);
+                await contextProvider.SetAppUser(usu);
 
-                usu.PostLogin(login, "", usu, valid);
+                await usu.PostLogin(login, "", usu, valid);
             }
             else
             {
-                usu.PostLogin(login, "", null, valid);
+                await usu.PostLogin(login, "", null, valid);
             }
 
             return valid;
         }
 
-        public static bool Login(string email, string password, ContextProvider contextProvider)
+        public static async Task<bool> Login(ContextProvider contextProvider, string email, string password)
         {
             AppUser theUser = (AppUser)contextProvider.BusinessProvider.CreateObject(contextProvider, "AppUser");
 
-            return theUser.LoginInternal(email, password);
+            return await theUser.LoginInternal(email, password);
         }
 
-        protected bool LoginInternal(string email, string password)
+        protected async Task<bool> LoginInternal(string email, string password)
         {
-            dynamic userData = contextProvider
-                .DbContext
-                .QueryFirstOrDefault<dynamic>("Select idAppUser, password From AppUser Where email = @Email", new { Email = email });
+            var userData = (await contextProvider.QueryUser(_ => _.Email == email && !_.Deactivated));
             AppUser usu = null;
             bool valid = false;
 
             if (userData != null)
             {
-                string enc = PasswordDerivedString(((int)userData.idAppUser).NoNullString(), password);
+                string enc = PasswordDerivedString(userData.IdAppUser.NoNullString(), password);
 
-                if (enc == userData.password)
+                if (enc == userData.Password)
                 {
                     usu = (AppUser)businessProvider.CreateObject(contextProvider, "AppUser");
 
-                    usu.ReadFromDB((int)userData.idAppUser);
+                    await usu.ReadFromDB(userData.IdAppUser);
                 }
 
                 // Hack to 
                 if (usu == null)
                 {
-                    if (userData.password == password)
+                    if (userData.Password == password)
                     {
                         usu = (AppUser)businessProvider.CreateObject(contextProvider, "AppUser");
 
-                        usu.ReadFromDB((int)userData.idAppUser);
+                        await usu.ReadFromDB(userData.IdAppUser);
 
-                        usu["password"] = password;
+                        usu.Password = password;
 
-                        usu.StoreToDB();
+                        await usu.StoreToDB();
                     }
                     else
                     {
@@ -84,7 +84,7 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
                     }
                 }
 
-                if (usu != null && usu["deactivated"].NoNullBool())
+                if (usu != null && usu.Deactivated.NoNullBool())
                 {
                     usu = null;
                 }
@@ -92,31 +92,31 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
 
             if (usu != null)
             {
-                contextProvider.SetAppUser(usu);
+                await contextProvider.SetAppUser(usu);
                 valid = true;
             }
 
-            PostLogin(email, password, usu, valid);
+            await PostLogin(email, password, usu, valid);
 
             return valid;
         }
 
-        public virtual void PostLogin(string email, string password, AppUser user, bool valid)
+        public virtual Task PostLogin(string email, string password, AppUser user, bool valid)
         {
-
+            return Task.CompletedTask;
         }
 
-        public virtual bool ChangePassword(string actual, string newPassword)
+        public virtual async Task<bool> ChangePassword(string actual, string newPassword)
         {
-            ReadFromDB();
+            await ReadFromDB();
 
             string enc = PasswordDerivedString(this[0].NoNullString(), actual);
 
-            if (enc == this["checkpassword"].NoNullString() && CheckStrength(newPassword))
+            if (enc == CheckPassword && CheckStrength(newPassword))
             {
-                this["password"] = newPassword;
+                Password = newPassword;
 
-                StoreToDB();
+                await StoreToDB();
             }
             else
             {
@@ -126,15 +126,15 @@ WHERE (email = @email) AND (deactivated = 0)", new { email = login });
             return true;
         }
 
-        public virtual bool ChangePasswordBlind(string newPassword)
+        public virtual async Task<bool> ChangePasswordBlind(string newPassword)
         {
-            ReadFromDB();
+            await ReadFromDB();
 
             if (CheckStrength(newPassword))
             {
-                this["password"] = newPassword;
+                Password = newPassword;
 
-                StoreToDB();
+                await StoreToDB();
             }
             else
             {

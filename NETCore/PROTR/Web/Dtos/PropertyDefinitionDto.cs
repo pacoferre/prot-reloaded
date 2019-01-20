@@ -37,7 +37,7 @@ namespace PROTR.Web.Dtos
             Type = property.Type;
             IsReadOnly = property.IsReadOnly;
             IsOnlyOnNew = property.IsOnlyOnNew;
-            FieldName = property.FieldName;
+            FieldName = property.FieldName.ToCamelCase();
             Label = property.Label;
             ClientFormat = property.ClientFormat;
             Pattern = property.Pattern;

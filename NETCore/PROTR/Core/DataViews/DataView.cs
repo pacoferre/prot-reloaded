@@ -108,15 +108,16 @@ namespace PROTR.Core.DataViews
                 .Replace("{FromClause}", FromClause);
         }
 
-        public IEnumerable<dynamic> Get(string whereClause, DynamicParameters param, int order, SortDirection sortDirection,
-            int pageNumber, int rowsPerPage, ref int rowCount)
+        public async Task<(IEnumerable<dynamic>, int)> Get(string whereClause, DynamicParameters param, int order, SortDirection sortDirection,
+            int pageNumber, int rowsPerPage)
         {
+            int rowCount;
             string sql = setter.GetFinalSQLQuery(this, whereClause, param, order, sortDirection, pageNumber, rowsPerPage);
             string sqlCount = setter.GetCountSQLQuery(this, whereClause, param);
 
-            rowCount = setter.ContextProvider.DbContext.ParametrizedQuery<int>(sql, param).FirstOrDefault();
+            rowCount = (await setter.ContextProvider.DbContext.ParametrizedQueryAsync<int>(sql, param)).FirstOrDefault();
 
-            return setter.ContextProvider.DbContext.ParametrizedQuery<dynamic>(sql, param);
+            return (await setter.ContextProvider.DbContext.ParametrizedQueryAsync<dynamic>(sql, param), rowCount);
         }
     }
 }

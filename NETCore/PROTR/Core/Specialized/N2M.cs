@@ -7,7 +7,7 @@ namespace PROTR.Core.Specialized
 {
     public class N2MDecorator : BusinessBaseDecorator
     {
-        public string externalFieldNameM { get; set; }
+        public string ExternalFieldNameM { get; set; }
 
         public N2MDecorator(BusinessBaseProvider provider) : base(provider)
         {
@@ -16,10 +16,10 @@ namespace PROTR.Core.Specialized
 
         protected override void SetCustomProperties()
         {
-            PropertyDefinition external = new PropertyDefinition(externalFieldNameM, externalFieldNameM, typeof(Int32));
+            PropertyDefinition external = new PropertyDefinition(ExternalFieldNameM, ExternalFieldNameM, typeof(Int32));
             PropertyDefinition active = new PropertyDefinition("Active", "Active", typeof(bool), PropertyInputType.checkbox);
 
-            Properties.Add(externalFieldNameM, external);
+            Properties.Add(ExternalFieldNameM, external);
             Properties.Add("Active", active);
 
             Properties.Values.ElementAt(0).NoChecking = true;
@@ -56,7 +56,7 @@ namespace PROTR.Core.Specialized
             }
         }
 
-        public override void StoreToDB()
+        public override async Task StoreToDB()
         {
             string ownFieldNameN = Decorator.ListProperties[0].FieldName;
             string ownFieldNameM = Decorator.ListProperties[1].FieldName;
@@ -66,7 +66,7 @@ namespace PROTR.Core.Specialized
             string sqlExists = "Select count(*) From " + Decorator.TableNameEncapsulated
                 + " WHERE " + Decorator.ListProperties[0].FieldName + " = " + Parent.Parent.Key
                 + " AND " + Decorator.ListProperties[1].FieldName + " = " + externalID;
-            bool exists = contextProvider.DbContext.QueryFirstOrDefault<int>(sqlExists) != 0;
+            bool exists = await contextProvider.DbContext.QueryFirstOrDefaultAsync<int>(sqlExists) != 0;
 
             if (Parent.Parent.IsDeleting || !active)
             {
@@ -80,26 +80,26 @@ namespace PROTR.Core.Specialized
                         IsDeleting = true;
                     }
 
-                    base.StoreToDB();
+                    await base.StoreToDB();
                 }
             }
             else
             {
                 if (!exists && !IsNew)
                 {
-                    SetNew();
+                    await SetNew();
                 }
 
                 base[ownFieldNameN] = Parent.Parent.Key.NoNullInt();
                 base[ownFieldNameM] = externalID;
 
-                base.StoreToDB();
+                await base.StoreToDB();
             }
         }
 
-        public override void SetNew(bool preserve = false, bool withoutCollections = false)
+        public override async Task SetNew(bool preserve = false, bool withoutCollections = false)
         {
-            base.SetNew(true, true);
+            await base.SetNew(true, true);
         }
 
         public override bool MatchFilter(string filterName)

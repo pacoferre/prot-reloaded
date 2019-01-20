@@ -229,7 +229,7 @@ namespace PROTR.Core
 
         public static string DefaultDateClientFormat { get; set; } = "L";
 
-        public string GetValue(BusinessBase obj)
+        public async Task<string> GetValue(BusinessBase obj)
         {
             string value = "";
 
@@ -293,7 +293,7 @@ namespace PROTR.Core
                 if (Required && value == "0" && !IsObjectView)
                 {
                     // First element
-                    ListTable dt = obj.BusinessProvider.ListProvider.GetList(obj.ContextProvider, ListObjectName, ListName);
+                    ListTable dt = await obj.BusinessProvider.ListProvider.GetList(obj.ContextProvider, ListObjectName, ListName);
 
                     if (dt.ToClient.Count > 0)
                     {
@@ -316,7 +316,7 @@ namespace PROTR.Core
             return value;
         }
 
-        public void SetValue(BusinessBase obj, string value)
+        public async Task SetValue(BusinessBase obj, string value)
         {
             if (obj.IsReadOnly(FieldName) || value == null)
             {
@@ -358,7 +358,7 @@ namespace PROTR.Core
                 {
                     if (value != "")
                     {
-                        AppUser us = obj.CurrentUser;
+                        AppUser us = await obj.CurrentUser();
                         DateTime d;
                         string _format = "yyyy/MM/dd";
 

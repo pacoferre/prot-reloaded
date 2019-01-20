@@ -83,13 +83,14 @@ namespace PROTR.Core.Security
         {
         }
 
-        public override void StoreToDB()
+        public override Task StoreToDB()
         {
             // Nothing to do.
             //base.StoreToDB();
+            return Task.CompletedTask;
         }
 
-        public static void LoginWindows(ContextProvider contextProvider, int idAppUser = 1)
+        public static async Task LoginWindows(ContextProvider contextProvider, int idAppUser = 1)
         {
             AppUser usu = null;
 
@@ -97,7 +98,7 @@ namespace PROTR.Core.Security
 
             usu = (AppUser)contextProvider.BusinessProvider.CreateObject(contextProvider, "AppUserNoDB");
 
-            usu.SetNew();
+            await usu.SetNew();
 
             usu["idAppUser"] = idAppUser;
 
@@ -106,7 +107,7 @@ namespace PROTR.Core.Security
 
             usu.IsNew = false;
 
-            contextProvider.SetAppUser(usu);
+            await contextProvider.SetAppUser(usu);
         }
     }
 }

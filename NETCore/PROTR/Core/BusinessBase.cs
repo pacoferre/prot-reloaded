@@ -40,6 +40,19 @@ namespace PROTR.Core
         public BusinessBaseProvider BusinessProvider => businessProvider;
         public ContextProvider ContextProvider => contextProvider;
 
+        public virtual object ToModelObject
+        {
+            get
+            {
+                return ContextProvider.Mapper.Map(this, GetType(), ModelType);
+            }
+        }
+
+        public virtual void FromModelObject(object model)
+        {
+            ContextProvider.Mapper.Map(model, this, ModelType, GetType());
+        }
+
         public virtual string ObjectName
         {
             get
@@ -110,17 +123,14 @@ namespace PROTR.Core
         }
 
         private AppUser _currentUser = null;
-        public AppUser CurrentUser
+        public async Task<AppUser> CurrentUser()
         {
-            get
+            if (_currentUser == null)
             {
-                if (_currentUser == null)
-                {
-                    _currentUser = contextProvider.GetAppUser();
-                }
-
-                return _currentUser;
+                _currentUser = await contextProvider.GetAppUser();
             }
+
+            return _currentUser;
         }
 
         public override bool Equals(object obj)
@@ -141,11 +151,11 @@ namespace PROTR.Core
 
         public static bool operator ==(BusinessBase b1, BusinessBase b2)
         {
-            if ((object)b1 == null && (object)b2 == null)
+            if (b1 is null && b2 is null)
             {
                 return true;
             }
-            if ((object)b1 == null || (object)b2 == null)
+            if (b1 is null || b2 is null)
             {
                 return false;
             }

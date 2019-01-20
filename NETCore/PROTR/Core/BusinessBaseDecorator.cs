@@ -17,9 +17,10 @@ namespace PROTR.Core
         public Dictionary<string, PropertyDefinition> Properties { get; } = new Dictionary<string, PropertyDefinition>();
         public List<PropertyDefinition> ListProperties { get; } = new List<PropertyDefinition>();
         public List<int> PrimaryKeys { get; } = new List<int>();
-        public bool primaryKeyIsOneInt { get; internal set; }
-        public bool primaryKeyIsOneLong { get; internal set; }
-        public bool primaryKeyIsOneGuid { get; internal set; }
+        public bool PrimaryKeyIsOneInt { get; internal set; }
+        public bool PrimaryKeyIsOneLong { get; internal set; }
+        public bool PrimaryKeyIsOneGuid { get; internal set; }
+        public string PrimaryKeyFieldName { get; internal set; } = null;
 
         public string Singular { get; set; } = "";
         public string Plural { get; set; } = "";
@@ -67,10 +68,8 @@ namespace PROTR.Core
 
         internal int IndexOfName(string name)
         {
-            int result;
-
             return (name != null &&
-                fieldNameLookup.TryGetValue(name, out result)) ? result : -1;
+                fieldNameLookup.TryGetValue(name, out int result)) ? result : -1;
         }
 
         public virtual void SetProperties(ContextProvider contextProvider, string objectName, int dbNumber)
@@ -149,12 +148,15 @@ namespace PROTR.Core
                 }
             }
 
-            primaryKeyIsOneInt = PrimaryKeys.Count == 1 && 
+            PrimaryKeyIsOneInt = PrimaryKeys.Count == 1 && 
                 ListProperties[PrimaryKeys[0]].DataType == typeof(Int32);
-            primaryKeyIsOneLong = PrimaryKeys.Count == 1 && 
+            PrimaryKeyIsOneLong = PrimaryKeys.Count == 1 && 
                 ListProperties[PrimaryKeys[0]].DataType == typeof(Int64);
-            primaryKeyIsOneGuid = PrimaryKeys.Count == 1 && 
+            PrimaryKeyIsOneGuid = PrimaryKeys.Count == 1 && 
                 ListProperties[PrimaryKeys[0]].DataType == typeof(Guid);
+
+            PrimaryKeyFieldName = PrimaryKeys.Count == 1 ?
+                ListProperties[PrimaryKeys[0]].FieldName : null;
         }
 
         public virtual DataItem New(BusinessBase owner)

@@ -25,7 +25,7 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="returnIdentity">Retrieve identity.</param>
         /// <param name="propertyKey">The name of the identity property.</param>
         /// <returns>The Id of the inserted row or null.</returns>
-        public static decimal? Insert<TEntity>(this DbSet<TEntity> dbSet, object entity, bool returnIdentity = true, string propertyKey = "Id")
+        public static object Insert<TEntity>(this DbSet<TEntity> dbSet, object entity, bool returnIdentity = true, string propertyKey = "Id")
             where TEntity : class, new() =>
             (dbSet ?? throw new ArgumentNullException(nameof(dbSet)))
                 .GetDbContext().Insert<TEntity>(entity, returnIdentity, propertyKey);
@@ -38,7 +38,7 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="entity">The entity instance.</param>
         /// <param name="returnIdentity">Retrieve identity.</param>
         /// <param name="propertyKey">The name of the identity property.</param>
-        /// <returns>The Id of the inserted row or null.</returns>
+        /// <returns>The Id of the inserted row or null or 1 (sucess on returnIdentity = false).</returns>
         public static object Insert<TEntity>(this DbContext dbContext, object entity, bool returnIdentity = true, string propertyKey = "Id")
             where TEntity : class, new()
         {
@@ -48,14 +48,22 @@ namespace PROTR.Core.Data.Dapper.Extensions
             var (sql, sqlParams) = dbContext.CompileInsertOper<TEntity>(entity);
             var (con, trans, timeout) = dbContext.GetDatabaseConfig();
 
-            var result = con.ExecuteScalar<object>(sql, sqlParams, transaction: trans, commandTimeout: timeout);
+            object result;
 
-            if (returnIdentity && result != null)
+            if (returnIdentity)
             {
-                var propInfo = entity.GetType().GetProperty(propertyKey);
+                result = con.ExecuteScalar<object>(sql, sqlParams, transaction: trans, commandTimeout: timeout);
+                if (result != null)
+                {
+                    var propInfo = entity.GetType().GetProperty(propertyKey);
 
-                if (propInfo != null && propInfo.CanWrite)
-                    propInfo.SetValue(entity, Convert.ChangeType(result, propInfo.PropertyType));
+                    if (propInfo != null && propInfo.CanWrite)
+                        propInfo.SetValue(entity, Convert.ChangeType(result, propInfo.PropertyType));
+                }
+            }
+            else
+            {
+                result = con.Execute(sql, sqlParams, transaction: trans, commandTimeout: timeout);
             }
 
             return result;
@@ -254,10 +262,10 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="dbSet">The <see cref="DbSet{T}"/>.</param>
         /// <param name="predicate">The predicate expression for the condition in WHERE clause.</param>
         /// <returns>The number of rows affected.</returns>
-        public static int Delete<TEntity>(this DbSet<TEntity> dbSet, Expression<Func<TEntity, bool>> predicate = null)
+        public static int Delete<TEntity>(this DbSet<TEntity> dbSet, object entity, Expression<Func<TEntity, bool>> predicate = null)
             where TEntity : class, new() =>
             (dbSet ?? throw new ArgumentNullException(nameof(dbSet)))
-                .GetDbContext().Delete(predicate);
+                .GetDbContext().Delete(entity, predicate);
 
         /// <summary>
         ///  Deletes entities that match the given predicate.
@@ -266,11 +274,11 @@ namespace PROTR.Core.Data.Dapper.Extensions
         /// <param name="dbContext">The <see cref="DbContext"/>.</param>
         /// <param name="predicate">The predicate expression for the condition in WHERE clause.</param>
         /// <returns>The number of rows affected.</returns>
-        public static int Delete<TEntity>(this DbContext dbContext, Expression<Func<TEntity, bool>> predicate = null)
+        public static int Delete<TEntity>(this DbContext dbContext, object entity, Expression<Func<TEntity, bool>> predicate = null)
             where TEntity : class, new()
         {
             if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
-            var (sb, sqlParams) = dbContext.CompileDeleteOper<TEntity>();
+            var (sb, sqlParams) = dbContext.CompileDeleteOper<TEntity>(entity);
 
             if (predicate != null)
             {
@@ -321,6 +329,21 @@ namespace PROTR.Core.Data.Dapper.Extensions
             var entry = dbContext.CreateEntry(new TEntity(), EntityState.Deleted);
             var entityAnnotations = entry.EntityType.Relational();
             var cmd = new CustomModifCommand(entityAnnotations.TableName, entityAnnotations.Schema, entry, null, EntityState.Deleted);
+            var sqlGen = dbContext.GetService<IUpdateSqlGenerator>();
+            var sb = new StringBuilder();
+            sqlGen.AppendDeleteOperation(sb, cmd, 0);
+            var parameters = new DynamicParameters();
+            AddParameters(cmd, parameters);
+
+            return (sb, parameters);
+        }
+
+        private static (StringBuilder, DynamicParameters) CompileDeleteOper<TEntity>(this DbContext dbContext, object entity)
+          where TEntity : class, new()
+        {
+            var entry = dbContext.CreateEntry(new TEntity(), EntityState.Deleted);
+            var entityAnnotations = entry.EntityType.Relational();
+            var cmd = new CustomModifCommand(entityAnnotations.TableName, entityAnnotations.Schema, entry, entity, EntityState.Deleted);
             var sqlGen = dbContext.GetService<IUpdateSqlGenerator>();
             var sb = new StringBuilder();
             sqlGen.AppendDeleteOperation(sb, cmd, 0);
@@ -483,6 +506,12 @@ namespace PROTR.Core.Data.Dapper.Extensions
             }
 
             return result;
+        }
+        private static IEnumerable<TResult> Query<TResult>(DbContext dbContext, string sql, object param)
+        {
+            var (con, trans, timeout) = dbContext.GetDatabaseConfig();
+
+            return con.Query<TResult>(sql, param, transaction: trans, commandTimeout: timeout);
         }
 
         private static InternalEntityEntry CreateEntry(this DbContext dbContext, object entity, EntityState entityState)

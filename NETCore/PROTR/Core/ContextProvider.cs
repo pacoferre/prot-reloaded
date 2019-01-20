@@ -4,10 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PROTR.Core.Data;
 using PROTR.Core.Security;
+using PROTR.Core.Security.EF;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PROTR.Core
 {
@@ -40,6 +44,11 @@ namespace PROTR.Core
         {
         }
 
+        public virtual Task<AppUserModel> QueryUser(Expression<Func<AppUserModel, bool>> predicate)
+        {
+            throw new Exception("Must return DbSet<AppUser>");
+        }
+
         public bool UserIsAuthenticated
         {
             get
@@ -48,7 +57,7 @@ namespace PROTR.Core
             }
         }
 
-        public void SetAppUser(AppUser user)
+        public async Task SetAppUser(AppUser user)
         {
             // New user logon.
             HttpContext?.Session.Clear();
@@ -57,28 +66,23 @@ namespace PROTR.Core
 
             IDAppUser = (int)user[0];
 
-            BusinessProvider.StoreObject(user, UseAppUserNoDB ? "AppUserNoDB" : "AppUser");
+            await BusinessProvider.StoreObject(user, UseAppUserNoDB ? "AppUserNoDB" : "AppUser");
         }
 
-        private static object currentUserLock = new object();
-
-        public AppUser GetAppUser()
+        public async Task<AppUser> GetAppUser()
         {
             if (IDAppUser > 0)
             {
-                lock (currentUserLock)
-                {
-                    return (AppUser)BusinessProvider.RetreiveObject(this,
-                        UseAppUserNoDB ? "AppUserNoDB" : "AppUser", IDAppUser.ToString());
-                }
+                return (AppUser) (await BusinessProvider.RetreiveObject(this,
+                    UseAppUserNoDB ? "AppUserNoDB" : "AppUser", IDAppUser.ToString()));
             }
 
             return null;
         }
 
-        public void StoreAppUser(AppUser user, BusinessBaseProvider provider)
+        public async Task StoreAppUser(AppUser user, BusinessBaseProvider provider)
         {
-            provider.StoreObject(user,
+            await provider.StoreObject(user,
                 UseAppUserNoDB ? "AppUserNoDB" : "AppUser");
         }
 

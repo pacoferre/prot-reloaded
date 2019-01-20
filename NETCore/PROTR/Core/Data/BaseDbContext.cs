@@ -8,62 +8,68 @@ using System.Text;
 using Dapper;
 using PROTR.Core.Data.Dapper.Extensions;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace PROTR.Core.Data
 {
     public class ProtDbContext : DbContext
     {
-        private IDbConnection conn = null;
-        private IDbTransaction trans = null;
-        private bool inTransaction = false;
-
         public ProtDbContext(DbContextOptions options) : base(options)
         {
         }
 
-        public T QueryFirstOrDefault<T>(string sql, object parameters = null)
+        public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object parameters = null)
         {
-            return Database.GetDbConnection().QueryFirstOrDefault<T>(sql, parameters);
+            return await Database.GetDbConnection().QueryFirstOrDefaultAsync<T>(sql, parameters);
         }
 
-        public IEnumerable<T> ParametrizedQuery<T>(string sql, object parameters = null)
+        public async Task<IEnumerable<T>> ParametrizedQueryAsync<T>(string sql, object parameters = null)
         {
-            return Database.GetDbConnection().Query<T>(sql, parameters);
+            return await Database.GetDbConnection().QueryAsync<T>(sql, parameters);
         }
 
-        public int Execute(string sql, object parameters = null)
+        public async Task<int> ExecuteAsync(string sql, object parameters = null)
         {
-            return Database.GetDbConnection().Execute(sql, parameters);
+            return await Database.GetDbConnection().ExecuteAsync(sql, parameters);
         }
 
         public List<ColumnDefinition> GetDefinitions(string objectName)
         {
             List<ColumnDefinition> list = new List<ColumnDefinition>();
 
-            var entityType = Model.FindEntityType(objectName);
+            var type = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => a.GetTypes().FirstOrDefault()?.Namespace?.Contains("Business") ?? false)
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.Name.EndsWith(objectName + "Model"))
+                .FirstOrDefault();
+            var entityType = Model.FindEntityType(type.ToString());
             var props = entityType.GetProperties().AsList();
             var keys = entityType.GetKeys().AsList();
 
-            props.ForEach(prop =>
+            foreach(var oProp in type.GetProperties())
             {
-                var col = new ColumnDefinition();
-
-                col.ColumnName = prop.Name;
-                col.DataType = prop.ClrType;
-                col.IsNullable = prop.IsNullable;
-                col.IsComputed = prop.GetValueGeneratorFactory() != null;
-                col.IsPrimaryKey = prop.IsPrimaryKey();
-                col.MaxLength = prop.GetMaxLength() ?? int.MaxValue;
+                var prop = props.First(_ => _.Name == oProp.Name);
+                var col = new ColumnDefinition
+                {
+                    ColumnName = prop.Name,
+                    DataType = prop.ClrType,
+                    IsNullable = prop.IsNullable,
+                    IsComputed = prop.GetValueGeneratorFactory() != null,
+                    IsPrimaryKey = prop.IsPrimaryKey(),
+                    MaxLength = prop.GetMaxLength() ?? int.MaxValue
+                };
 
                 list.Add(col);
-            });
+            }
 
             return list;
         }
 
-        public void BeginTransaction()
+        public async Task BeginTransactionAsync()
         {
-            Database.BeginTransaction();
+            await Database.BeginTransactionAsync();
         }
 
         public void CommitTransaction()
@@ -76,58 +82,74 @@ namespace PROTR.Core.Data
             Database.RollbackTransaction();
         }
 
-        public void ReadBusinessObject(BusinessBase obj)
+        public async Task ReadBusinessObject(BusinessBase obj)
         {
             var set = GetType()
                 .GetMethod("Set")
                 .MakeGenericMethod(obj.ModelType)
                 .Invoke(this, null);
             var keys = obj.Keys;
-            var found = set
+            var task = (Task) set
                 .GetType()
-                .GetMethod("Find")
-                .Invoke(set, keys);
+                .GetMethod("FindAsync", new[] { typeof(object[]) })
+                .Invoke(set, new[] { keys });
+
+            await task.ConfigureAwait(false);
+
+            var found = task.GetType().GetProperty("Result").GetValue(task);
 
             if (found != null)
             {
-                obj.ContextProvider.Mapper.Map(found, obj, obj.ModelType, obj.GetType());
+                obj.FromModelObject(found);
             }
         }
 
-        public void StoreBusinessObject(BusinessBase obj)
+        public async Task StoreBusinessObject(BusinessBase obj)
         {
             var def = obj.Decorator;
 
             if (obj.IsNew)
             {
-                if (def.primaryKeyIsOneGuid)
+                if (def.PrimaryKeyIsOneGuid)
                 {
                     obj[def.PrimaryKeys[0]] = Lib.GenerateComb();
                 }
 
-                if (def.primaryKeyIsOneInt || def.primaryKeyIsOneLong)
+                if (def.PrimaryKeyIsOneInt || def.PrimaryKeyIsOneLong)
                 {
-                    var result = this.Insert<AppUserModel>(obj.ContextProvider.Mapper.Map(obj, obj.GetType(), obj.ModelType),
-                        true, obj.Decorator.ListProperties[obj.Decorator.PrimaryKeys[0]].FieldName);
+                    var result = await (Task<object>) typeof(DapperEFCoreExts)
+                        .GetMethod("InsertAsync")
+                        .MakeGenericMethod(obj.ModelType)
+                        .Invoke(this, new object[] { obj.ToModelObject,
+                            true, obj.Decorator.PrimaryKeyFieldName });
 
                     if (result == null)
                     {
                         throw new Exception("Error inserting new " + obj.Description);
                     }
-
-                    obj.IsNew = false;
-
                 }
                 else
                 {
-                    var result = this.Insert<AppUserModel>(obj.ContextProvider.Mapper.Map(obj, obj.GetType(), obj.ModelType),
-                        false);
-                    obj.IsNew = false;
+                    var result = await (Task<object>) typeof(DapperEFCoreExts)
+                        .GetMethod("InsertAsync")
+                        .MakeGenericMethod(obj.ModelType)
+                        .Invoke(this, new object[] { obj.ToModelObject,
+                            false });
+
+                    if ((int) result != 1)
+                    {
+                        throw new Exception("Error inserting new " + obj.Description);
+                    }
                 }
+                obj.IsNew = false;
+                obj.IsModified = false;
             }
             else if (obj.IsDeleting)
             {
-                int result = conn.Execute(def.DeleteQuery, def.GetPrimaryKeyParameters(obj), trans);
+                var result = await (Task<int>) typeof(DapperEFCoreExts)
+                    .GetMethod("DeleteAsync")
+                    .MakeGenericMethod(obj.ModelType)
+                    .Invoke(this, new object[] { obj.ToModelObject });
 
                 if (result != 1)
                 {
@@ -136,19 +158,49 @@ namespace PROTR.Core.Data
             }
             else
             {
-                int result = conn.Execute(def.UpdateQuery, def.GetUpdateParameters(obj), trans);
+                var result = await (Task<int>) UpdateAsyncMethod
+                    .Value
+                    .MakeGenericMethod(obj.ModelType)
+                    .Invoke(null, new object[] { this, obj.ToModelObject, Type.Missing });
 
                 if (result != 1)
                 {
                     throw new Exception("Error updating " + obj.Description);
                 }
             }
-
         }
 
-        public void ReadBusinessCollection(BusinessCollectionBase col)
+        private static Lazy<MethodInfo> UpdateAsyncMethod = new Lazy<MethodInfo>(() =>
         {
+            var methodsInfo = typeof(DapperEFCoreExts).GetMethods()
+                    .Where(x => x.Name == "UpdateAsync")
+                    .Select(x => new { M = x, P = x.GetParameters() })
+                    .Where(x => x.P.Length == 3 && x.P[0].ParameterType == typeof(DbContext) && x.P[1].ParameterType == typeof(object));
+            return methodsInfo.FirstOrDefault()?.M;
+        });
 
+        public async Task ReadBusinessCollection(BusinessCollectionBase col)
+        {
+            string sql = col.SQLQuery;
+            object param = col.SQLParameters;
+
+            var result = await (Task<IEnumerable<object>>)GetType()
+                .GetMethod("QueryAsync")
+                .MakeGenericMethod(col.ActiveObject.ModelType)
+                .Invoke(this, new object[] { sql, param });
+
+            col.Clear();
+
+            foreach (var item in result)
+            {
+                BusinessBase obj = col.CreateNew();
+
+                obj.FromModelObject(item);
+                obj.IsModified = false;
+                obj.IsNew = false;
+
+                col.Add(obj);
+            }
         }
     }
 

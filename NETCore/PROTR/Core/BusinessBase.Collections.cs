@@ -17,11 +17,11 @@ namespace PROTR.Core
             return true;
         }
 
-        public virtual BusinessCollectionBase Collection(string collectionName)
+        public virtual async Task<BusinessCollectionBase> Collection(string collectionName)
         {
             BusinessCollectionBase col = NotEnsuredCollection(collectionName);
 
-            col.EnsureList();
+            await col.EnsureList();
 
             return col;
         }

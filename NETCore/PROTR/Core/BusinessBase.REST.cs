@@ -10,17 +10,18 @@ namespace PROTR.Core
 {
     public partial class BusinessBase
     {
-        public virtual ModelToClient PerformActionAndCreateResponse(HttpContext context, ModelFromClient fromClient)
+        public virtual async Task<ModelToClient> PerformActionAndCreateResponse(HttpContext context, ModelFromClient fromClient)
         {
-            ModelToClient model = new ModelToClient();
-
-            model.wasNew = IsNew;
-            model.wasDeleting = IsDeleting;
-            model.wasModified = IsModified;
+            ModelToClient model = new ModelToClient
+            {
+                wasNew = IsNew,
+                wasDeleting = IsDeleting,
+                wasModified = IsModified
+            };
 
             if (fromClient.action == "load")
             {
-                ReadFromDB();
+                await ReadFromDB();
                 model.refreshAll = true;
             }
             else if (fromClient.action == "new")
@@ -28,7 +29,7 @@ namespace PROTR.Core
                 if (!IsNew)
                 {
                     // Almost innecesary, done by BusinessBaseProvider.RetreiveObject in CRUDController.
-                    SetNew();
+                    await SetNew();
                 }
             }
             else if (fromClient.action == "delete")
@@ -41,10 +42,10 @@ namespace PROTR.Core
                 {
                     PropertyDefinition prop = Decorator.Properties[item.Key];
 
-                    prop.SetValue(this, item.Value);
+                    await prop.SetValue(this, item.Value);
                 }
 
-                ProcessCollectionsFromClient(context, fromClient, model);
+                await ProcessCollectionsFromClient(context, fromClient, model);
 
                 if (fromClient.action == "ok")
                 {
@@ -53,9 +54,8 @@ namespace PROTR.Core
                     {
                         string messageAction = IsDeleting ? "deleted" : (IsNew ? "created" : "saved");
 
-                        contextProvider.DbContext.BeginTransaction();
-
-                        StoreToDB();
+                        await contextProvider.DbContext.BeginTransactionAsync();
+                        await StoreToDB();
 
                         model.normalMessage = Description + " " + messageAction + " successfully.";
 
@@ -74,7 +74,7 @@ namespace PROTR.Core
             {
                 if (IsNew)
                 {
-                    SetNew();
+                    await SetNew();
                 }
                 else
                 {
@@ -83,7 +83,7 @@ namespace PROTR.Core
                         IsDeleting = false;
                     }
 
-                    ReadFromDB();
+                    await ReadFromDB();
                 }
 
                 model.refreshAll = true;
@@ -97,12 +97,12 @@ namespace PROTR.Core
                 {
                     PropertyDefinition prop = Decorator.Properties[fromClient.dataNames[index]];
 
-                    model.data.Add(prop.FieldName, prop.GetValue(this));
+                    model.data.Add(prop.FieldName, await prop.GetValue(this));
                 }
             }
-            ProcessCollectionsToClient(context, fromClient, model);
+            await ProcessCollectionsToClient(context, fromClient, model);
 
-            businessProvider.StoreObject(this, fromClient.objectName);
+            await businessProvider.StoreObject(this, fromClient.objectName);
 
             model.keyObject = Key;
             model.isNew = IsNew;
@@ -120,6 +120,8 @@ namespace PROTR.Core
 
             SetExtraToClientResponse(model);
 
+            model.Sanitize();
+
             return model;
         }
 
@@ -128,7 +130,7 @@ namespace PROTR.Core
 
         }
 
-        private void ProcessCollectionsFromClient(HttpContext context, ModelFromClient fromClient, ModelToClient model)
+        private async Task ProcessCollectionsFromClient(HttpContext context, ModelFromClient fromClient, ModelToClient model)
         {
             if (fromClient.root.children != null && fromClient.root.children.Count > 0)
             {
@@ -136,7 +138,7 @@ namespace PROTR.Core
 
                 foreach (ModelFromClientCollection clientCol in fromClient.root.children)
                 {
-                    BusinessCollectionBase col = Collection(clientCol.path);
+                    BusinessCollectionBase col = await Collection(clientCol.path);
                     List<ModelToClient> elements = new List<ModelToClient>(col.Count);
                     ModelFromClientData clientElement;
 
@@ -149,7 +151,7 @@ namespace PROTR.Core
                             clientElement = clientCol.elements.Find(element => obj.Key == element.key);
                         }
 
-                        elements.Add(obj.ProcessRequestInternalElement(context, clientCol, clientElement, fromClient.action));
+                        elements.Add(await obj.ProcessRequestInternalElement(context, clientCol, clientElement, fromClient.action));
                     }
 
                     model.collections.Add(clientCol.path, elements);
@@ -157,7 +159,7 @@ namespace PROTR.Core
             }
         }
 
-        private void ProcessCollectionsToClient(HttpContext context, ModelFromClient fromClient, ModelToClient model)
+        private async Task ProcessCollectionsToClient(HttpContext context, ModelFromClient fromClient, ModelToClient model)
         {
             if (fromClient.root.children != null && fromClient.root.children.Count > 0)
             {
@@ -167,11 +169,11 @@ namespace PROTR.Core
                 }
                 if (model.collections == null)
                 {
-                    ProcessCollectionsFromClient(context, fromClient, model);
+                    await ProcessCollectionsFromClient(context, fromClient, model);
                 }
                 foreach (ModelFromClientCollection clientCol in fromClient.root.children)
                 {
-                    BusinessCollectionBase col = Collection(clientCol.path);
+                    BusinessCollectionBase col = await Collection(clientCol.path);
                     List<ModelToClient> elements = model.collections[clientCol.path];
                     ModelToClient currentModel = null;
 
@@ -179,21 +181,22 @@ namespace PROTR.Core
                     {
                         currentModel = elements.Find(element => element.keyObject == obj.Key);
 
-                        obj.ProcessResponseInternalElement(context, clientCol, currentModel);
+                        await obj.ProcessResponseInternalElement(context, clientCol, currentModel);
                     }
                 }
             }
         }
 
-        public ModelToClient ProcessRequestInternalElement(HttpContext context, ModelFromClientCollection fromClient,
+        public async Task<ModelToClient> ProcessRequestInternalElement(HttpContext context, ModelFromClientCollection fromClient,
             ModelFromClientData element, string fromClientAction)
         {
-            ModelToClient model = new ModelToClient();
-
-            model.wasNew = IsNew;
-            model.wasDeleting = IsDeleting;
-            model.wasModified = IsModified;
-            model.keyObject = Key;
+            ModelToClient model = new ModelToClient
+            {
+                wasNew = IsNew,
+                wasDeleting = IsDeleting,
+                wasModified = IsModified,
+                keyObject = Key
+            };
 
             // Too much copy/paste
             if (element != null)
@@ -206,7 +209,7 @@ namespace PROTR.Core
                         {
                             PropertyDefinition prop = Decorator.Properties[item.Key];
 
-                            prop.SetValue(this, item.Value);
+                            await prop.SetValue(this, item.Value);
                         }
                     }
                 }
@@ -215,7 +218,7 @@ namespace PROTR.Core
             return model;
         }
 
-        private void ProcessResponseInternalElement(HttpContext context, 
+        private async Task ProcessResponseInternalElement(HttpContext context, 
             ModelFromClientCollection fromClient,
             ModelToClient model)
         {
@@ -227,7 +230,7 @@ namespace PROTR.Core
                 {
                     PropertyDefinition prop = Decorator.Properties[fromClient.dataNames[index]];
 
-                    model.data.Add(prop.FieldName, prop.GetValue(this));
+                    model.data.Add(prop.FieldName, await prop.GetValue(this));
                 }
             }
 
