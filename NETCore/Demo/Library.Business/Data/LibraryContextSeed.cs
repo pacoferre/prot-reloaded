@@ -35,27 +35,27 @@ namespace Demo.Library.Business.Data
 
                 if (!libraryContext.AuthorNationalities.Any())
                 {
-                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationalityModel()
                     {
                         Name = "Spain"
                     });
-                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationalityModel()
                     {
                         Name = "France"
                     });
-                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationalityModel()
                     {
                         Name = "United Kingdom"
                     });
-                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationalityModel()
                     {
                         Name = "Germany"
                     });
-                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationalityModel()
                     {
                         Name = "EE.UU."
                     });
-                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationality()
+                    libraryContext.AuthorNationalities.Add(new Business.Authors.EF.AuthorNationalityModel()
                     {
                         Name = "Italy"
                     });

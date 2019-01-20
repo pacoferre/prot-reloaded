@@ -1,4 +1,5 @@
-﻿using PROTR.Core.Security.EF;
+﻿using AutoMapper;
+using PROTR.Core.Security.EF;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,15 @@ namespace PROTR.Core.Security
 
     public partial class AppUser : BusinessBase
     {
+        public class AppUserProfile : Profile
+        {
+            public AppUserProfile()
+            {
+                CreateMap<AppUserModel, AppUser>();
+                CreateMap<AppUser, AppUserModel>();
+            }
+        }
+
         public AppUser(ContextProvider contextProvider) : base(contextProvider)
         {
             ModelType = typeof(AppUserModel);
@@ -67,7 +77,7 @@ namespace PROTR.Core.Security
         {
             get
             {
-                return this[2].NoNullString();
+                return this[2].ToString();
             }
             set
             {

@@ -4,11 +4,11 @@ using System.Text;
 
 namespace Demo.Library.Business.Authors.EF
 {
-    public class AuthorNationality
+    public class AuthorNationalityModel
     {
         public int IdAuthorNationality { get; set; }
         public string Name { get; set; }
 
-        public List<Author> Authors { get; set; }
+        public List<AuthorModel> Authors { get; set; }
     }
 }

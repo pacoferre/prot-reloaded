@@ -1,0 +1,6 @@
+﻿C:\DesarrolloCore\PROTReloaded\prot-reloaded\NETCore\Demo\Library.Business\Authors\EF\AuthorModel.cs
+C:\DesarrolloCore\PROTReloaded\prot-reloaded\NETCore\Demo\Library.Business\Authors\EF\AuthorNationalityModel.cs
+C:\DesarrolloCore\PROTReloaded\prot-reloaded\NETCore\Demo\Library.Business\Security\EF\LibraryAppUserModel.cs
+
+Done  in C:\DesarrolloCore\PROTReloaded\prot-reloaded\NETCore\Demo\Library.Business
+

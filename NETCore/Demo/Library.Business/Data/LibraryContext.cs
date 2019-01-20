@@ -15,8 +15,8 @@ namespace Demo.Library.Business.Data
         {
         }
 
-        public DbSet<Author> Authors { get; set; }
-        public DbSet<AuthorNationality> AuthorNationalities { get; set; }
+        public DbSet<AuthorModel> Authors { get; set; }
+        public DbSet<AuthorNationalityModel> AuthorNationalities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -24,8 +24,8 @@ namespace Demo.Library.Business.Data
             base.OnModelCreating(builder);
 
             // Local tables
-            builder.Entity<Author>(ConfigureAuthor);
-            builder.Entity<AuthorNationality>(ConfigureAuthorNationality);
+            builder.Entity<AuthorModel>(ConfigureAuthor);
+            builder.Entity<AuthorNationalityModel>(ConfigureAuthorNationality);
         }
 
         protected override void ConfigureAppUser(EntityTypeBuilder<LibraryAppUserModel> builder)
@@ -35,27 +35,21 @@ namespace Demo.Library.Business.Data
             // Rest of fields.
         }
 
-        private void ConfigureAuthor(EntityTypeBuilder<Author> builder)
+        private void ConfigureAuthor(EntityTypeBuilder<AuthorModel> builder)
         {
             builder.ToTable("Author");
 
             builder.HasKey(obj => obj.IdAuthor);
 
-            builder.Property(obj => obj.IdAuthor)
-                .HasColumnName("idAuthor");
-
             builder.Property(obj => obj.Name)
-                .HasColumnName("name")
                 .IsRequired(true)
                 .HasMaxLength(30);
 
             builder.Property(obj => obj.Surname)
-                .HasColumnName("surname")
                 .IsRequired(true)
                 .HasMaxLength(50);
 
             builder.Property(obj => obj.IdAuthorNationality)
-                .HasColumnName("idAuthorNationality")
                 .IsRequired(true)
                 .HasMaxLength(50);
 
@@ -65,17 +59,13 @@ namespace Demo.Library.Business.Data
                 .HasForeignKey(one => one.IdAuthorNationality);
         }
 
-        private void ConfigureAuthorNationality(EntityTypeBuilder<AuthorNationality> builder)
+        private void ConfigureAuthorNationality(EntityTypeBuilder<AuthorNationalityModel> builder)
         {
             builder.ToTable("AuthorNationality");
 
             builder.HasKey(obj => obj.IdAuthorNationality);
 
-            builder.Property(obj => obj.IdAuthorNationality)
-                .HasColumnName("idAuthorNationality");
-
             builder.Property(obj => obj.Name)
-                .HasColumnName("name")
                 .IsRequired(true)
                 .HasMaxLength(70);
         }
