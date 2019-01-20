@@ -25,7 +25,7 @@ namespace PROTR.Core
             PostSetNew();
         }
 
-        public virtual async Task<bool> ReadFromDB(string key)
+        public virtual async Task ReadFromDB(string key)
         {
             if (key.StartsWith("-"))
             {
@@ -45,10 +45,10 @@ namespace PROTR.Core
                 await Decorator.ListProperties[index].SetValue(this, keys[index]);
             }
 
-            return await ReadFromDB();
+            await ReadFromDB();
         }
 
-        public virtual async Task<bool> ReadFromDB(int key)
+        public virtual async Task ReadFromDB(int key)
         {
             if (!Decorator.PrimaryKeyIsOneInt)
             {
@@ -57,10 +57,10 @@ namespace PROTR.Core
 
             this[Decorator.PrimaryKeys[0]] = key;
 
-            return await ReadFromDB();
+            await ReadFromDB();
         }
 
-        public virtual async Task<bool> ReadFromDB(long key)
+        public virtual async Task ReadFromDB(long key)
         {
             if (!Decorator.PrimaryKeyIsOneLong)
             {
@@ -69,10 +69,10 @@ namespace PROTR.Core
 
             this[Decorator.PrimaryKeys[0]] = key;
 
-            return await ReadFromDB();
+            await ReadFromDB();
         }
 
-        public virtual async Task<bool> ReadFromDB(Guid key)
+        public virtual async Task ReadFromDB(Guid key)
         {
             if (!Decorator.PrimaryKeyIsOneGuid)
             {
@@ -81,32 +81,21 @@ namespace PROTR.Core
 
             this[Decorator.PrimaryKeys[0]] = key;
 
-            return await ReadFromDB();
+            await ReadFromDB();
         }
 
-        public virtual async Task<bool> ReadFromDB()
+        public virtual async Task ReadFromDB()
         {
-            bool readed = true;
-
             if (!IsNew)
             {
-                try
-                {
-                    await contextProvider.DbContext.ReadBusinessObject(this);
+                await contextProvider.DbContext.ReadBusinessObject(this);
 
-                    IsNew = false;
-                    IsModified = false;
-                    IsDeleting = false;
+                IsNew = false;
+                IsModified = false;
+                IsDeleting = false;
 
-                    AfterReadFromDB();
-                }
-                catch(Exception exp)
-                {
-                    readed = false;
-                }
+                AfterReadFromDB();
             }
-
-            return readed;
         }
 
         protected virtual void AfterReadFromDB()
